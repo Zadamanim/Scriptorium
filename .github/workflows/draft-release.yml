@@ -1,0 +1,48 @@
+# Builds the Windows installer whenever a version tag (v1.2.3) is pushed,
+# and opens a DRAFT release with it attached. Nothing reaches users until
+# a human reviews the draft and clicks "Publish" (the raven ignores drafts).
+name: Draft release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install NSIS (the installer compiler)
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq nsis
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check the tag matches package.json
+        run: |
+          WANT="v$(node -p "require('./package.json').version")"
+          if [ "$WANT" != "$GITHUB_REF_NAME" ]; then
+            echo "Tag $GITHUB_REF_NAME does not match package.json version $WANT"; exit 1
+          fi
+
+      - name: Build the installer
+        run: bash build-tools/build-installer.sh
+
+      - name: Open a draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          V="$GITHUB_REF_NAME"
+          NOTES="release-notes/$V.md"
+          if [ ! -f "$NOTES" ]; then NOTES=/tmp/notes.md; echo "Scriptorium ${V#v}" > "$NOTES"; fi
+          gh release create "$V" "dist/Scriptorium Setup ${V#v}.exe" \
+            --draft --title "Scriptorium ${V#v}" --notes-file "$NOTES"
