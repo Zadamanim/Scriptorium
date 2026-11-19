@@ -171,9 +171,11 @@ async function startNewBook() {
 }
 
 const pickBook = (path, mode) => openPath(path, undefined, mode);
+// a book moved between shelves keeps being saved to its new home if it is the one open on the desk
+function bookMoved(from, to) { if (S.path === from) S.path = to; }
 async function showLibrary(dir) {
-  if (dir) { const p = renderLibrary(pickBook); await look('library', dir); await p; }
-  else { show('library'); await renderLibrary(pickBook); }
+  if (dir) { const p = renderLibrary(pickBook, bookMoved); await look('library', dir); await p; }
+  else { show('library'); await renderLibrary(pickBook, bookMoved); }
 }
 
 // ------------------------------------------------------------------ the reading nook

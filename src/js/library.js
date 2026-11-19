@@ -17,7 +17,9 @@ function face(cls, style) {
   return f;
 }
 
-export async function renderLibrary(onPick) {
+let lastPick = null, onMoved = null;
+export async function renderLibrary(onPick, moved) {
+  lastPick = onPick; if (moved) onMoved = moved;
   const lib = await window.scribe.library.list();
   const scroller = document.getElementById('lib-scroll');
   const keep = scroller.scrollTop;
@@ -37,12 +39,10 @@ export async function renderLibrary(onPick) {
       row.books.push({ b, h, w, ht: 150 + (h % 34) }); row.used += w + 3;
     }
   }
-  // keep adding empty boards until the case runs off the bottom of the screen
-  const viewRows = Math.ceil((scroller.clientHeight - C.top) / C.row) + 2;
-  while (rows.length < viewRows) rows.push({ shelf: null, books: [] });
+  // only real shelves: below the last one the case simply ends on a plinth
   const H = rows.length * C.row;
   kase.style.cssText = `left:${C.left}px;top:${C.top}px;width:${C.width}px;height:${H}px`;
-  document.getElementById('lib-inner').style.height = (C.top + H + 120) + 'px';
+  document.getElementById('lib-inner').style.height = (C.top + H + 200) + 'px';
 
   const inW = C.width - 2 * C.post;
   // Chrome only paints about a screen's height of any one 3D surface, so the case is built
@@ -84,6 +84,7 @@ export async function renderLibrary(onPick) {
       x += w + 3;
     }
   });
+  kase.append(face('plinth', { left: '-22px', top: H + 'px', width: (C.width + 44) + 'px', height: '64px' }));
   scroller.scrollTop = keep;
   return lib;
 }
@@ -104,7 +105,8 @@ function pull(book, b, onPick) {
         b.sealed ? el('div', { class: 'bc-sealed' }, 'Sealed with magic words') : null,
         el('div', { class: 'bc-btns' },
           el('button', { class: 'btn', onclick: () => go('read') }, 'Read it'),
-          el('button', { class: 'btn primary', onclick: () => go('write') }, 'Write in it'))].filter(Boolean));
+          el('button', { class: 'btn primary', onclick: () => go('write') }, 'Write in it')),
+        el('button', { class: 'linkish clickable bc-move', onclick: () => { pushBack(); document.getElementById('book-card')?.close(); moveFlow(b); } }, 'Move to another shelf…')].filter(Boolean));
     }, { side: 'right', onClose: () => { if (pulled && pulled.book === book) { book.classList.remove('pulled'); pulled = null; } } });
   }, 330);
 }
@@ -113,6 +115,32 @@ export function pushBack() {
   pulled.book.classList.remove('pulled');
   const c = pulled.card; pulled = null;
   c?.close?.();
+}
+
+/** carry a book to a different shelf */
+async function moveFlow(b) {
+  const lib = await window.scribe.library.list();
+  const here = lib.shelves.find(s => s.books.some(x => x.path === b.path))?.name;
+  const pick = el('div', { class: 'shelf-pick two' });
+  lib.shelves.forEach((s) => pick.append(el('label', {}, el('input', { type: 'radio', name: 'mv', value: s.name, checked: s.name === here }), s.name)));
+  const newName = el('input', { class: 'field', placeholder: 'name of the new shelf', style: 'font-size:18px;padding:3px 8px' });
+  const newRadio = el('input', { type: 'radio', name: 'mv', value: '__new__' });
+  newName.addEventListener('focus', () => { newRadio.checked = true; });
+  pick.append(el('label', { class: 'wide' }, newRadio, '✚ Build a new shelf:', newName));
+  const shelf = await dialog({
+    title: 'Move to Another Shelf', body: el('div', {}, el('p', {}, `Upon which shelf shall “${b.title}” rest?`), pick),
+    buttons: [{ label: 'Nay', value: null }, { label: 'Move it', kind: 'primary', value: () => {
+      const r = pick.querySelector('input[name=mv]:checked');
+      return r?.value === '__new__' ? (newName.value.trim() || 'New Shelf') : r?.value;
+    } }],
+  });
+  if (!shelf || shelf === here) return;
+  try {
+    const dest = await window.scribe.library.move(b.path, shelf);
+    onMoved?.(b.path, dest);
+    toast(`“${b.title}” now rests upon ${shelf}.`);
+    await renderLibrary(lastPick);
+  } catch (e) { toast('The tome would not move: ' + (e.message || e)); }
 }
 
 export async function addShelfFlow() {

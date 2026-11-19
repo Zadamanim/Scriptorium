@@ -21,6 +21,7 @@ contextBridge.exposeInMainWorld('scribe', {
   library: {
     list: () => ipcRenderer.invoke('library:list'),
     addShelf: (name) => ipcRenderer.invoke('library:add-shelf', name),
+    move: (p, shelf) => ipcRenderer.invoke('library:move', p, shelf),
     reveal: (p) => ipcRenderer.invoke('library:reveal', p),
     chooseRoot: () => ipcRenderer.invoke('library:choose-root'),
   },

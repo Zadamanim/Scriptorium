@@ -91,7 +91,7 @@ body.busy, body.busy * { cursor: var(--cur-wait) !important; }
 .edge.left, .edge.right { z-index: 46; }
 
 /* ------------------------------------------------------------- the window (title view) */
-.moonglow { background: radial-gradient(ellipse 900px 800px at calc(3000px + 860px) calc(2000px + 520px), rgba(150,175,255,.22), rgba(150,175,255,0) 70%); z-index: 1; }
+.moonglow { background: radial-gradient(ellipse 900px 800px at calc(3000px + 780px) calc(2000px + 500px), rgba(150,175,255,.22), rgba(150,175,255,0) 70%); z-index: 1; }
 .carved { position: absolute; top: 26px; left: 0; right: 0; margin: 0; text-align: center; z-index: 2;
   font-family: 'UnifrakturMaguntia', serif; font-weight: normal; font-size: 92px; color: #7d7468;
   text-shadow: -2px -2px 1px rgba(0,0,0,.75), 1px 1px 0 rgba(220,225,255,.25), 0 0 30px rgba(150,175,255,.15); }
@@ -101,7 +101,7 @@ body.busy, body.busy * { cursor: var(--cur-wait) !important; }
 .window { position: absolute; left: 550px; top: 188px; width: 620px; height: 720px; border-radius: 310px 310px 0 0; overflow: hidden; z-index: 3;
   box-shadow: inset 0 0 0 4px #3a352e, inset 0 0 40px rgba(0,0,0,.6); }
 .window .sky { position: absolute; inset: 0; background: linear-gradient(#030716 0%, #0c1636 45%, #22346a 80%, #3a4c80 100%); }
-.window .moon { position: absolute; left: 400px; top: 120px; width: 96px; height: 96px; border-radius: 50%;
+.window .moon { position: absolute; left: 118px; top: 112px; width: 96px; height: 96px; border-radius: 50%;
   background: radial-gradient(circle at 35% 40%, rgba(180,170,140,.35) 0 9px, transparent 10px), radial-gradient(circle at 62% 62%, rgba(180,170,140,.3) 0 13px, transparent 14px),
     radial-gradient(circle at 60% 28%, rgba(180,170,140,.25) 0 6px, transparent 7px), radial-gradient(circle at 40% 35%, #fffef4, #ece4c4 70%, #cfc6a2);
   box-shadow: 0 0 40px 14px rgba(220,230,255,.35), 0 0 140px 60px rgba(160,180,255,.18); }
@@ -113,11 +113,19 @@ body.busy, body.busy * { cursor: var(--cur-wait) !important; }
 @keyframes drift { from { transform: translateX(-380px); } to { transform: translateX(760px); } }
 .window .hills { position: absolute; left: -10px; bottom: 0; width: 640px; }
 .window .lattice { position: absolute; inset: 0; width: 620px; height: 720px; opacity: .9; }
+/* moonlight falling through the window, down and to the right into the room */
+.moonbeam { position: absolute; left: 0; top: 0; width: 1720px; height: 1000px; z-index: 6; pointer-events: none; mix-blend-mode: screen; filter: blur(14px); }
+.moonbeam::before { content: ''; position: absolute; inset: 0;
+  clip-path: polygon(590px 340px, 760px 210px, 1180px 420px, 1720px 700px, 1720px 1000px, 1280px 1000px, 820px 700px);
+  background: repeating-linear-gradient(118deg, rgba(0,0,0,0) 0 40px, rgba(170,190,255,.05) 40px 76px, rgba(0,0,0,0) 76px 130px),
+    linear-gradient(152deg, rgba(175,195,255,.12) 0%, rgba(170,190,255,.24) 38%, rgba(160,180,255,.12) 68%, rgba(150,170,255,0) 92%); }
+body[data-ambient=full] .moonbeam { animation: beam 9s ease-in-out infinite alternate; }
+@keyframes beam { from { opacity: .85; } to { opacity: 1; } }
 .sill { position: absolute; left: 500px; top: 906px; width: 720px; height: 36px; z-index: 4; border-radius: 3px;
   background: linear-gradient(#9a9284 0 30%, #5a5248 30%), url(../assets/textures/wall.png); background-blend-mode: multiply; box-shadow: 0 10px 20px rgba(0,0,0,.6); }
 .desk-peek { top: 975px; height: 400px; z-index: 5; background: linear-gradient(#5a3518, #2a170a 30%), url(../assets/textures/wood.png); background-size: 100% 100%, 700px; background-blend-mode: multiply; box-shadow: 0 -6px 20px rgba(0,0,0,.6); }
 
-#prop-raven { left: 1010px; top: 744px; width: 153px; height: 167px; z-index: 6; display: none; filter: drop-shadow(0 0 5px rgba(190,205,255,.55)); }
+#prop-raven { left: 572px; top: 744px; width: 153px; height: 167px; z-index: 6; display: none; filter: drop-shadow(0 0 5px rgba(190,205,255,.55)); }
 #prop-raven.show { display: block; animation: alight .7s steps(4) 1; }
 @keyframes alight { from { transform: translate(120px, -160px) scale(.6); opacity: 0; } to { transform: none; opacity: 1; } }
 
@@ -145,8 +153,9 @@ body[data-ambient=off] .fireglow, body[data-ambient=off] .edge-arrow { animation
 .corner-col::before { content: ''; position: absolute; left: -22px; right: -22px; top: 1340px; height: 60px;
   background: linear-gradient(#4a443c, #8f8676 30%, #6e665a 50%, #a89e8c 70%, #5f574c), url(../assets/textures/wall.png); background-blend-mode: multiply; background-size: 100% 100%, 200px; }
 .corner-col.l { left: -62px; } .corner-col.r { right: -62px; }
-#view-hall .corners { --floor: 1000px; } #view-door .corners { --floor: 896px; } #view-nook .corners { --floor: 866px; }
-#view-library .corners { --floor: 1000px; }
+/* in the hall and the library the floor is out of sight, so the columns run on past the bottom of the screen */
+#view-hall .corners { --floor: 1600px; } #view-door .corners { --floor: 922px; } #view-nook .corners { --floor: 904px; }
+#view-library .corners { --floor: 1600px; }
 
 /* ------------------------------------------------------------- the reading nook */
 #view-nook .wall { filter: brightness(.5) saturate(.8) sepia(.25); }
@@ -166,7 +175,7 @@ body[data-ambient=off] .fireglow, body[data-ambient=off] .edge-arrow { animation
 .nook-reading { display: none; }
 #view-nook.reading .nook-reading { display: block; }
 #view-nook.reading .nook-hint { display: none; }
-.nook-dim { z-index: 6; background: rgba(8,4,2,.62); }
+.nook-dim { z-index: 6; background: rgba(8,4,2,.36); }
 .blanket { top: 900px; height: 600px; z-index: 7; border-radius: 40% 40% 0 0 / 60px 60px 0 0;
   background: repeating-linear-gradient(90deg, rgba(184,144,46,.35) 0 4px, transparent 4px 60px), repeating-linear-gradient(0deg, rgba(139,26,18,.55) 0 10px, transparent 10px 60px),
     repeating-linear-gradient(90deg, rgba(139,26,18,.45) 0 10px, transparent 10px 60px), #24402f; box-shadow: 0 -10px 30px rgba(0,0,0,.6); }
@@ -181,7 +190,7 @@ body[data-ambient=off] .fireglow, body[data-ambient=off] .edge-arrow { animation
 .torchlight { z-index: 1;
   background: radial-gradient(circle 520px at calc(3000px + 492px) calc(2000px + 340px), rgba(255,170,80,.28), rgba(255,170,80,0)),
               radial-gradient(circle 520px at calc(3000px + 1228px) calc(2000px + 340px), rgba(255,170,80,.28), rgba(255,170,80,0)); }
-#prop-door { left: 640px; top: 192px; width: 440px; height: 700px; z-index: 3; }
+#prop-door { left: 640px; top: 208px; width: 440px; height: 700px; z-index: 3; }
 #prop-torch-l { left: 444px; top: 300px; width: 96px; height: 192px; z-index: 3; cursor: default; }
 #prop-torch-r { left: 1180px; top: 300px; width: 96px; height: 192px; z-index: 3; cursor: default; }
 
@@ -217,6 +226,8 @@ body[data-ambient=off] .fireglow, body[data-ambient=off] .edge-arrow { animation
   display: flex; align-items: center; justify-content: center; box-shadow: 0 6px 10px rgba(0,0,0,.45); }
 #bookcase .post { background: linear-gradient(90deg, #2a170a, #8a5a2e 30%, #5a3818 70%, #1d1006), url(../assets/textures/shelfwood.png); background-blend-mode: multiply; background-size: 100% 100%, 400px;
   box-shadow: 0 0 18px rgba(0,0,0,.6); }
+#bookcase .plinth { border-radius: 0 0 4px 4px; box-shadow: 0 16px 30px rgba(0,0,0,.7);
+  background: linear-gradient(#2a170a 0 4px, #8a5a2e 4px 8px, #4a2c14 8px 40px, #a06a36 40px 44px, #6a4220 44px 58px, #c08a4a 58px), url(../assets/textures/shelfwood.png); background-blend-mode: multiply; background-size: 100% 100%, 400px; }
 #bookcase .crown { border-radius: 4px 4px 0 0; box-shadow: 0 10px 20px rgba(0,0,0,.6);
   background: linear-gradient(#c08a4a 0 4px, #6a4220 4px 14px, #a06a36 14px 18px, #4a2c14 18px 44px, #8a5a2e 44px 48px, #2a170a 48px), url(../assets/textures/shelfwood.png); background-blend-mode: multiply; background-size: 100% 100%, 400px; }
 .shelf-plaque { font-family: var(--title-font); font-size: 15px; color: #3a250c; padding: 1px 14px; border-radius: 2px;
@@ -242,6 +253,7 @@ body[data-ambient=off] .fireglow, body[data-ambient=off] .edge-arrow { animation
 #book-card .bc-author { font-style: italic; font-size: 19px; }
 #book-card .bc-sealed { font-size: 15px; font-style: italic; margin-top: 6px; color: #7a2a18; }
 #book-card .bc-btns { display: flex; gap: 10px; justify-content: center; margin-top: 16px; }
+#book-card .bc-move { display: block; margin: 12px auto 0; background: none; border: 0; font: inherit; font-size: 16px; }
 
 /* ------------------------------------------------------------- the desk, seen from the chair */
 #view-desk .wall { filter: brightness(.45) saturate(.6); }
@@ -272,9 +284,10 @@ body[data-ambient=off] .fireglow, body[data-ambient=off] .edge-arrow { animation
 #view-desk.dark #desk-glow { opacity: 0; transition: opacity .6s; }
 /* shadows the candle casts across the desk */
 #desk-shadows { position: absolute; inset: 0; z-index: 3; pointer-events: none; }
-.cast { position: absolute; transform-origin: 0 50%; transform: rotate(var(--a)) scaleX(var(--flick));
-  background: radial-gradient(ellipse 100% 50% at 0% 50%, rgba(8,3,0,.82), rgba(8,3,0,.5) 45%, rgba(8,3,0,0) 100%); filter: blur(4px); opacity: calc(1.8 - var(--flick) * .8); }
-.cast-quill { filter: blur(3px); }
+.cast { position: absolute; inset: 0; transform: matrix(1, 0, calc(var(--c) * var(--flick)), calc(var(--d) * var(--flick)), 0, 0);
+  filter: blur(var(--blur)); opacity: var(--op); }
+.cast.flat { transform: translate(calc(var(--sx) * var(--flick) * 1px), calc(var(--sy) * var(--flick) * 1px)); }
+.cast-shape { position: absolute; background: #050200; -webkit-mask: var(--src) 0 0 / 100% 100% no-repeat; mask: var(--src) 0 0 / 100% 100% no-repeat; }
 #view-desk.dark .cast { opacity: 0; transition: opacity .6s; }
 .crystal-glow { position: absolute; left: 1395px; top: 215px; width: 300px; height: 300px; border-radius: 50%; z-index: 16; pointer-events: none;
   background: radial-gradient(circle, rgba(170,140,255,.32), rgba(130,100,240,.10) 45%, rgba(120,90,230,0) 70%); animation: orbpulse 5s ease-in-out infinite; }
@@ -293,7 +306,7 @@ body[data-ambient=off] .fireglow, body[data-ambient=off] .edge-arrow { animation
 .book { position: absolute; left: 348px; top: 102px; width: 1024px; height: 754px; perspective: 2400px; z-index: 4; transition: transform calc(.35s * var(--flip-k, 1)) ease-in-out; }
 .book .cover { position: absolute; inset: 0; border-radius: 10px; background: url(../assets/textures/leather.png); background-size: 300px;
   box-shadow: 0 30px 50px rgba(0,0,0,.7), inset 0 0 0 3px #2a0b07, inset 0 0 0 7px rgba(201,162,76,.5), inset 0 0 40px rgba(0,0,0,.6); }
-.page-stack { position: absolute; top: 18px; bottom: 14px; width: 12px; background: repeating-linear-gradient(90deg, #d8c39a 0 1px, #b49a6c 1px 2px); border-radius: 2px; }
+.page-stack { position: absolute; top: 27px; bottom: 27px; width: 12px; background: repeating-linear-gradient(90deg, #d8c39a 0 1px, #b49a6c 1px 2px); border-radius: 2px; }
 .page-stack.left { left: 14px; } .page-stack.right { right: 14px; }
 .spread { position: absolute; left: 24px; top: 24px; width: 976px; height: 706px; display: flex; }
 .gutter { position: absolute; left: 50%; top: 24px; width: 90px; height: 706px; transform: translateX(-50%); pointer-events: none; z-index: 3;
@@ -478,7 +491,7 @@ body[data-ambient=off] .fireglow, body[data-ambient=off] .edge-arrow { animation
 .btn.danger { background: linear-gradient(#5b4a3a, #2e241b); color: #f0dcb4; border-color: #1a120b; }
 .field { width: 100%; font: inherit; font-size: 21px; padding: 6px 10px; border: 0; border-bottom: 2px solid #8a6b40; background: rgba(255,250,235,.55); outline: none; color: #2a1a0c; cursor: var(--cur-text); user-select: text; }
 .field:focus { background: rgba(255,250,235,.85); }
-.shelf-pick { display: flex; flex-direction: column; gap: 6px; max-height: 260px; overflow-y: auto; margin: 6px 0 10px; }
+.shelf-pick { display: flex; flex-direction: column; gap: 6px; max-height: 300px; overflow-y: auto; margin: 6px 0 10px; }
 .shelf-pick label { display: flex; align-items: center; gap: 10px; padding: 6px 10px; border-radius: 4px; cursor: var(--cur-pointer); }
 .shelf-pick label:hover { background: rgba(139,26,18,.08); }
 .shelf-pick input { accent-color: #8b1a12; width: 18px; height: 18px; }
@@ -508,6 +521,8 @@ body[data-ambient=off] .fireglow, body[data-ambient=off] .edge-arrow { animation
 .toast { position: fixed; left: 50%; bottom: 40px; transform: translateX(-50%); zoom: var(--uiz); padding: 12px 26px; font-size: 20px; z-index: 95; animation: unfurl .25s steps(3) 1; }
 
 .shelf-pick label .field { flex: 1; width: auto; }
+.shelf-pick.two { display: grid; grid-template-columns: 1fr 1fr; max-height: 340px; }
+.shelf-pick.two .wide { grid-column: 1 / -1; }
 
 /* quill menu: a short list of what's chosen; each row opens its own little page */
 #quill-menu { width: 340px; max-height: 94vh; overflow-y: auto; font-size: 18px; padding: 16px 16px 12px; }
@@ -540,3 +555,5 @@ body[data-ambient=off] .fireglow, body[data-ambient=off] .edge-arrow { animation
 .size-box { width: 70px; text-align: center; font-size: 20px; }
 .toggle { display: flex; align-items: center; gap: 8px; font-size: 18px; padding: 8px 10px; border-radius: 4px; cursor: var(--cur-pointer); }
 .toggle input { accent-color: #8b1a12; width: 18px; height: 18px; }
+/* rest pages are drawn on their own layer, the same way the turning leaf is, so text doesn't hop a pixel when a turn ends */
+.spread > .page, .spread > .endpaper { will-change: transform; }

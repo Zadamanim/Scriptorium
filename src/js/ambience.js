@@ -7,27 +7,47 @@ import { Prop } from './assets.js';
 // and how high above the desk it burns.
 const LIGHT = [214, 470];
 const LIGHT_H = 230;
-// [prop, base point on the desk, height, width of its footprint]
+// Each object's shadow is its own silhouette, turned over at the spot where it meets the desk and
+// laid out across the wood away from the flame. Every point is pushed out in proportion to its height
+// above that spot, so anything lifted (the pounce pot when shaken) leaves its shadow behind on the desk.
+//   base: where it touches the desk · H: its height in px · flat: lies on the desk, so only nudged aside
 const CASTERS = [
-  ['pounce', [166, 674], 140, 72],
-  ['spectacles', [168, 924], 46, 150],
-  ['inkwell', [1540, 944], 120, 130],
-  ['quill', [1552, 932], 300, 16],
-  ['crystal', [1545, 447], 150, 112],
+  { name: 'pounce', base: [166, 679], H: 135 },
+  { name: 'spectacles', base: [160, 880], H: 26, flat: true },
+  { name: 'inkwell', base: [1540, 940], H: 125 },
+  { name: 'quill', base: [1540, 940], H: 470 },
+  { name: 'crystal', base: [1545, 444], H: 142 },
 ];
 
 export function castShadows() {
   const host = document.getElementById('desk-shadows');
   if (!host) return;
   host.innerHTML = '';
-  for (const [name, [bx, by], h, w] of CASTERS) {
+  for (const c of CASTERS) {
+    const prop = document.getElementById('prop-' + c.name);
+    if (!prop) continue;
+    const [bx, by] = c.base;
     const dx = bx - LIGHT[0], dy = by - LIGHT[1];
-    const dist = Math.hypot(dx, dy);
-    const len = Math.min((h * dist) / Math.max(60, LIGHT_H - h * 0.4), h * 1.9) + w * 0.3;
-    const s = document.createElement('div');
-    s.className = 'cast cast-' + name;
-    s.style.cssText = `left:${bx}px;top:${by - w / 2}px;width:${len}px;height:${w}px;--a:${Math.atan2(dy, dx)}rad`;
-    host.append(s);
+    const dist = Math.hypot(dx, dy) || 1;
+    // similar triangles from the flame, tempered so tall things far away don't throw shadows off the desk
+    const len = Math.min((c.H * dist) / Math.max(90, LIGHT_H * 1.5 - c.H * 0.5), c.H * 1.25);
+    const Sx = (dx / dist) * len, Sy = (dy / dist) * len;
+    const outer = document.createElement('div');
+    outer.className = 'cast cast-' + c.name + (c.flat ? ' flat' : '');
+    const far = Math.min(1, dist / 1600);
+    outer.style.cssText = `transform-origin:${bx}px ${by}px;--op:${(0.72 - 0.2 * far).toFixed(2)};--blur:${(1.5 + 3 * far).toFixed(1)}px;` +
+      (c.flat ? `--sx:${Sx.toFixed(1)};--sy:${Sy.toFixed(1)}`
+              : `--c:${(-Sx / c.H).toFixed(4)};--d:${(-(Math.sign(Sy) || 1) * Math.max(Math.abs(Sy / c.H), 0.3)).toFixed(4)}`);
+    const shape = document.createElement('div');
+    shape.className = 'cast-shape';
+    const cs = getComputedStyle(prop);
+    Object.assign(shape.style, { left: cs.left, top: cs.top, width: cs.width, height: cs.height, transform: cs.transform, transformOrigin: cs.transformOrigin });
+    const setSrc = (src) => { if (src) shape.style.setProperty('--src', `url("${src}")`); };
+    setSrc(prop.querySelector('img')?.src);
+    if (!prop.dataset.shadowHooked) { prop.dataset.shadowHooked = '1'; prop.addEventListener('frame', (e) => prop._shadowSrc?.(e.detail)); }
+    prop._shadowSrc = setSrc;
+    outer.append(shape);
+    host.append(outer);
   }
 }
 
@@ -47,9 +67,9 @@ function tick() {
     const target = Math.random();
     n += (target - n) * (mode === 'reduced' ? 0.22 : 0.65);
   }
-  // a brighter flame casts shorter shadows and pushes the dark edges back a little
-  root.setProperty('--flick', (1.07 - 0.14 * n).toFixed(3));
-  root.setProperty('--glow', (0.7 + 0.3 * n).toFixed(3));
-  root.setProperty('--gloom', (1 - 0.1 * n).toFixed(3));
+  // a brighter flame casts shorter shadows and pushes the dark edges back; they move together
+  root.setProperty('--flick', (1.09 - 0.18 * n).toFixed(3));
+  root.setProperty('--glow', (0.68 + 0.32 * n).toFixed(3));
+  root.setProperty('--gloom', (1.04 - 0.16 * n).toFixed(3));
   if (mode !== 'off') timer = setTimeout(tick, mode === 'reduced' ? 420 : 130);
 }

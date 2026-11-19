@@ -35,8 +35,17 @@ function saveSettings(s) {
 let settings;
 
 function libraryRoot() { return settings.libraryRoot; }
+// a new library starts with the scribe's own shelf and a shelf for each of the common kinds of tale;
+// they are raised only once, so a shelf the scribe takes down stays down
+const FIRST_SHELVES = ['My Books', 'Fantasy', 'Mystery', 'Romance', 'Horror', 'Science Fiction', 'Adventure', 'Poetry'];
 function ensureLibrary() {
   fs.mkdirSync(path.join(libraryRoot(), 'My Books'), { recursive: true });
+  const raised = settings.shelvesRaised || [];
+  if (!raised.includes(libraryRoot())) {
+    for (const s of FIRST_SHELVES) { try { fs.mkdirSync(path.join(libraryRoot(), s), { recursive: true }); } catch {} }
+    settings.shelvesRaised = [...raised, libraryRoot()];
+    saveSettings(settings);
+  }
 }
 function safeName(name) {
   return String(name || '').replace(/[<>:"/\\|?*\x00-\x1f]/g, '').replace(/\s+/g, ' ').trim().slice(0, 80) || 'Untitled';
@@ -357,6 +366,20 @@ ipcMain.handle('library:add-shelf', async (_e, name) => {
   const n = safeName(name);
   await fsp.mkdir(path.join(libraryRoot(), n), { recursive: true });
   return n;
+});
+// move a tome to another shelf; never overwrites a book already resting there
+ipcMain.handle('library:move', async (_e, from, shelf) => {
+  const root = path.resolve(libraryRoot());
+  const src = path.resolve(String(from));
+  if (!src.startsWith(root + path.sep) || !src.toLowerCase().endsWith('.tome')) throw new Error('That tome is not in the Library.');
+  const dir = path.join(root, safeName(shelf));
+  await fsp.mkdir(dir, { recursive: true });
+  if (path.dirname(src) === dir) return src;
+  const { name } = path.parse(src);
+  let dest = path.join(dir, name + '.tome');
+  for (let n = 2; fs.existsSync(dest); n++) dest = path.join(dir, `${name} (${n}).tome`);
+  try { await fsp.rename(src, dest); } catch { await fsp.copyFile(src, dest); await fsp.unlink(src); }
+  return dest;
 });
 ipcMain.handle('library:reveal', (_e, p) => shell.showItemInFolder(p || libraryRoot()));
 ipcMain.handle('library:choose-root', async () => {

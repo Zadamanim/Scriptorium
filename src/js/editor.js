@@ -112,7 +112,7 @@ export function removeMark(m) { ed.book.marks = (ed.book.marks || []).filter(x =
 function renderCover() {
   const fc = document.getElementById('front-cover');
   fc.innerHTML = '';
-  fc.append(el('div', { class: 'fc-orn' }, '❦'), el('div', { class: 'fc-title' }, ed.book.title || 'Untitled Tome'),
+  fc.append(el('div', { class: 'fc-orn' }, '❦'), applyLook(el('div', { class: 'fc-title' }, ed.book.title || 'Untitled Tome'), ed.book.looks?.title, 'font'),
     el('div', { class: 'fc-orn' }, '✠'), el('div', { class: 'fc-author' }, ed.book.author || ''));
   if (ed.locked) fc.append(el('div', { class: 'fc-hint' }, 'Sealed with magic words. Touch the seal to speak them.'));
   fc.dataset.tip = ed.locked ? 'This book is sealed — speak the magic words to open it' : 'Open the book';
@@ -149,12 +149,52 @@ function renderPage(i, side) {
   return pg;
 }
 
+// ------------------------------------------------------------------ whole-line fields (title, author, chapter titles)
+// These hold plain words, so a font, size or ink chosen while the cursor is in one dresses the whole line.
+const isField = (n) => !!n && (n.dataset?.field || n.classList?.contains('chapter-title'));
+function fieldLook(n, make) {
+  if (n.dataset.field) { if (make) ed.book.looks = ed.book.looks || {}; return make ? (ed.book.looks[n.dataset.field] ||= {}) : ed.book.looks?.[n.dataset.field]; }
+  const p = ed.book.pages[+n.closest('.page')?.dataset.index]; if (!p?.chapter) return null;
+  return make ? (p.chapter.look ||= {}) : p.chapter.look;
+}
+export function applyLook(node, look, only) {
+  look = look || {};
+  const s = node.style;
+  s.fontFamily = look.font ? `"${look.font}", var(--body-font, serif)` : '';
+  if (only === 'font') return node;
+  s.fontSize = look.size ? look.size + 'px' : '';
+  s.color = look.color || '';
+  s.fontWeight = look.bold == null ? '' : look.bold ? '700' : '400';
+  s.fontStyle = look.italic == null ? '' : look.italic ? 'italic' : 'normal';
+  s.textDecoration = look.underline ? 'underline' : '';
+  s.textAlign = look.align || '';
+  return node;
+}
+const ALIGN_OF = { justifyLeft: 'left', justifyCenter: 'center', justifyRight: 'right', justifyFull: 'justify' };
+function fieldCmd(n, name, value) {
+  const cs = getComputedStyle(n);
+  const look = fieldLook(n, true); if (!look) return false;
+  if (name === 'fontName') look.font = value;
+  else if (name === 'foreColor') look.color = value;
+  else if (name === 'fontSize') look.size = value;
+  else if (name === 'bold') look.bold = !(parseInt(cs.fontWeight) >= 600);
+  else if (name === 'italic') look.italic = cs.fontStyle !== 'italic';
+  else if (name === 'underline') look.underline = !look.underline;
+  else if (ALIGN_OF[name]) look.align = ALIGN_OF[name];
+  else return false;
+  applyLook(n, look);
+  if (n.dataset.field === 'title') renderCover();
+  markDirty(); ed.onSelection();
+  return true;
+}
+
 function renderTitle() {
   const wrap = el('div', { class: 'title-page' });
   const t = el('div', { class: 'book-title', contenteditable: ed.readOnly ? 'false' : 'plaintext-only', spellcheck: 'true', 'data-field': 'title' });
   t.textContent = ed.book.title;
   const a = el('div', { class: 'book-author', contenteditable: ed.readOnly ? 'false' : 'plaintext-only', spellcheck: 'false', 'data-field': 'author' });
   a.textContent = ed.book.author;
+  applyLook(t, ed.book.looks?.title); applyLook(a, ed.book.looks?.author);
   for (const f of [t, a]) {
     f.addEventListener('input', () => { ed.book[f.dataset.field] = f.textContent.replace(/\n/g, ' '); markDirty(); ed.onTitle(); const who = document.querySelector('.bookplate .who'); if (who) who.textContent = ed.book.author || 'a Scribe unknown'; });
     f.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); (f === t ? a : null)?.focus(); if (f === a) f.blur(); } });
@@ -197,6 +237,7 @@ function renderText(pg, p, i, side) {
     if (p.chapter.dropCap) pg.classList.add('dropcap');
     const ct = el('div', { class: 'chapter-title', contenteditable: ed.readOnly ? 'false' : 'plaintext-only', spellcheck: 'true' });
     ct.textContent = p.chapter.title;
+    applyLook(ct, p.chapter.look);
     ct.addEventListener('input', () => { p.chapter.title = ct.textContent.replace(/\n/g, ' '); markDirty(); refreshContents(); });
     ct.addEventListener('keydown', (e) => { if (e.key === 'Enter' || (e.key === 'ArrowDown')) { e.preventDefault(); focusPageText(i, 'start'); } });
     pg.append(ct);
@@ -565,6 +606,7 @@ export function currentChapter() { const j = chapterIndexForCurrent(); return j 
 document.execCommand('defaultParagraphSeparator', false, 'p');
 export function cmd(name, value) {
   if (!restoreSelection()) { toast('Place thy quill (cursor) upon the page first.'); return; }
+  if (isField(ed.savedEditable) && fieldCmd(ed.savedEditable, name, value)) return;
   document.execCommand('styleWithCSS', false, true);
   document.execCommand(name, false, value);
   afterCommand();
@@ -578,6 +620,7 @@ function fixSizes(root) {
 }
 export function setFontSize(px) {
   if (!restoreSelection()) { toast('Place thy quill (cursor) upon the page first.'); return; }
+  if (isField(ed.savedEditable)) { fieldCmd(ed.savedEditable, 'fontSize', px); return; }
   ed.pendingSize = px;
   document.execCommand('styleWithCSS', false, true);
   document.execCommand('fontSize', false, '7');
@@ -630,6 +673,11 @@ export function queryState() {
   const st = { bold: false, italic: false, underline: false, ul: false, ol: false, align: 'justify', font: ed.book?.settings.bodyFont, size: ed.book?.settings.bodySize, lh: 1.5, firstIndent: false };
   const r = caretRange();
   if (!r || !ed.savedEditable || !ed.savedEditable.contains(r.startContainer)) return st;
+  if (isField(ed.savedEditable)) {
+    const cs = getComputedStyle(ed.savedEditable);
+    return { ...st, bold: parseInt(cs.fontWeight) >= 600, italic: cs.fontStyle === 'italic', underline: !!fieldLook(ed.savedEditable)?.underline,
+      font: cs.fontFamily.split(',')[0].trim().replace(/^["']|["']$/g, ''), size: Math.round(parseFloat(cs.fontSize)), align: cs.textAlign };
+  }
   try {
     st.bold = document.queryCommandState('bold'); st.italic = document.queryCommandState('italic'); st.underline = document.queryCommandState('underline');
     st.ul = document.queryCommandState('insertUnorderedList'); st.ol = document.queryCommandState('insertOrderedList');

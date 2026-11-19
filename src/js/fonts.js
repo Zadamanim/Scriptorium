@@ -71,6 +71,7 @@ export function familiesUsedIn(book) {
   const used = new Set();
   const s = book.settings || {};
   [s.bodyFont, s.capFont, s.titleFont].forEach(f => f && used.add(f));
+  [book.looks?.title?.font, book.looks?.author?.font, ...book.pages.map(p => p.chapter?.look?.font)].forEach(f => f && used.add(f));
   const re = /font-family:\s*([^;"]+|"[^"]*")/gi;
   for (const p of book.pages) {
     const html = ((p.html || '') + (p.boxes ? JSON.stringify(p.boxes) : '')).replace(/&quot;/g, '"').replace(/&#39;/g, "'");

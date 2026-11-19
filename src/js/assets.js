@@ -76,7 +76,7 @@ export class Prop {
     }
     this.draw();
   }
-  draw() { const fr = this.frames(this.state); this.img.src = ASSET(fr[Math.min(this.frame, fr.length - 1)]); }
+  draw() { const fr = this.frames(this.state); this.img.src = ASSET(fr[Math.min(this.frame, fr.length - 1)]); this.el.dispatchEvent(new CustomEvent('frame', { detail: this.img.src })); }
   // play a state once, then return to hover/idle (or call `then`)
   play(st, then) {
     if (!this.def[st]) { then && then(); return; }

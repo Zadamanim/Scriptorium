@@ -19,6 +19,17 @@ export function newBook() {
 }
 
 /** repair anything missing/odd in a loaded book */
+/** the dress of a whole-line field: font, size, ink, weight, slant, underline, alignment */
+function cleanLook(l) {
+  if (!l || typeof l !== 'object') return {};
+  const o = {};
+  if (typeof l.font === 'string' && l.font.length < 120 && !/[;{}<>"]/.test(l.font)) o.font = l.font;
+  if (Number.isFinite(+l.size) && +l.size >= 6 && +l.size <= 200) o.size = +l.size;
+  if (typeof l.color === 'string' && /^(#[0-9a-f]{3,8}|rgba?\([\d.,\s%]+\))$/i.test(l.color)) o.color = l.color;
+  for (const k of ['bold', 'italic', 'underline']) if (typeof l[k] === 'boolean') o[k] = l[k];
+  if (['left', 'center', 'right', 'justify'].includes(l.align)) o.align = l.align;
+  return o;
+}
 export function normalizeBook(b) {
   const book = { ...newBook(), ...b };
   book.settings = { ...newBook().settings, ...(b.settings || {}) };
@@ -31,10 +42,11 @@ export function normalizeBook(b) {
     p.id = p.id || uid();
     if (p.kind === 'text') {
       p.html = sanitizeHTML(p.html || '<p><br></p>');
-      if (p.chapter) p.chapter = { title: String(p.chapter.title || '').slice(0, 200), dropCap: !!p.chapter.dropCap };
+      if (p.chapter) p.chapter = { title: String(p.chapter.title || '').slice(0, 200), dropCap: !!p.chapter.dropCap, ...(p.chapter.look ? { look: cleanLook(p.chapter.look) } : {}) };
     }
   }
   book.title = String(book.title || ''); book.author = String(book.author || '');
+  book.looks = { title: cleanLook(b.looks?.title), author: cleanLook(b.looks?.author) };
   book.marks = (Array.isArray(b.marks) ? b.marks : []).filter(m => m && m.pageId)
     .map(m => ({ id: String(m.id || uid()), pageId: String(m.pageId), name: String(m.name || 'A mark').slice(0, 120) }));
   return book;
