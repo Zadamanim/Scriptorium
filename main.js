@@ -336,8 +336,8 @@ ipcMain.handle('update:fetch-and-install', async (e) => {
   send('backup', 0);
   const b = await updater.backupLibrary(libraryRoot());
   send('install', 1);
-  const r = updater.install(file);
-  if (!r.dryRun) setTimeout(() => { quitting = true; app.quit(); }, 400);
+  const r = await updater.install(file);
+  if (!r.dryRun && !r.interactive) setTimeout(() => { quitting = true; app.quit(); }, 400);
   return { ...r, backup: b.file, books: b.count };
 });
 ipcMain.handle('app:asset-text', (_e, rel) => {

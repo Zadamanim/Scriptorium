@@ -72,6 +72,7 @@ async function install() {
   try {
     const r = await window.scribe.update.fetchAndInstall();
     if (r.dryRun) { box.close(); progress = null; toast(`(test) Ready to install. Library copied to: ${r.backup}`, 6000); return; }
+    if (r.interactive) { box.close(); progress = null; toast('The installer has opened in its own window. Follow its steps, and the Scriptorium will be renewed.', 7000); return; }
     label.textContent = 'The candle gutters… the Scriptorium will relight itself in a moment.';
     document.getElementById('darkness').classList.add('on');
   } catch (e) {

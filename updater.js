@@ -64,7 +64,8 @@ async function download(info, onProgress) {
     if (!out.write(buf)) await new Promise(r => out.once('drain', r));
     if (total && Date.now() - lastTick > 100) { lastTick = Date.now(); onProgress(got / total); }
   }
-  await new Promise((r, j) => out.end(e => (e ? j(e) : r())));
+  // wait for 'close', not just 'finish': only then has Windows let go of the file
+  await new Promise((r, j) => { out.once('close', r); out.once('error', j); out.end(); });
   onProgress(1);
   const digest = hash.digest('hex');
   if (a.sha256 && digest !== a.sha256) { await fsp.unlink(file).catch(() => {}); throw new Error('The parcel was damaged on the road (checksum mismatch). Nothing was changed.'); }
@@ -96,11 +97,34 @@ async function backupLibrary(libraryRoot) {
 }
 
 /** run the new installer quietly; it closes us, replaces the program, and starts us again */
-function install(file) {
+const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+function launch(file, args) {
+  return new Promise((resolve, reject) => {
+    let child;
+    try { child = spawn(file, args, { detached: true, stdio: 'ignore', windowsHide: false }); }
+    catch (e) { reject(e); return; }
+    child.once('error', reject);
+    child.once('spawn', () => { child.unref(); resolve(); });
+  });
+}
+/** Windows (or an antivirus scan of the fresh download) can hold the file for a moment: keep trying */
+async function install(file) {
   if (process.env.SCRIPTORIUM_UPDATE_DRYRUN) return { dryRun: true };
   if (process.platform !== 'win32') throw new Error('Editions can only be installed on Windows.');
-  spawn(file, ['/S', '/RELAUNCH'], { detached: true, stdio: 'ignore' }).unref();
-  return { started: true };
+  let last;
+  for (let i = 0; i < 20; i++) {
+    try { await launch(file, ['/S', '/RELAUNCH']); return { started: true }; }
+    catch (e) {
+      last = e;
+      if (!['EBUSY', 'EPERM', 'EACCES', 'ETXTBSY'].includes(e.code)) throw e;
+      await sleep(750);
+    }
+  }
+  // still held after ~15 s: hand it to Windows to open normally, so the installer shows its own window
+  const { shell } = require('electron');
+  const err = await shell.openPath(file);
+  if (!err) return { started: true, interactive: true };
+  throw new Error(`Thy computer would not let the new edition run (${last && last.code}). It was saved at: ${file}`);
 }
 
 module.exports = { check, download, backupLibrary, install, configured: () => !!FEED };
