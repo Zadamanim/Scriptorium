@@ -251,6 +251,10 @@ export function openSpectacles() {
       el('div', { class: 'qm-row', id: 'sp-cursor' }, ...[[24, 'Small'], [32, 'Usual'], [48, 'Large'], [64, 'Huge']].map(([n, label]) =>
         el('button', { class: 'qm-btn wide' + ((s.cursorSize || 32) === n ? ' on' : ''), onclick: async (e) => {
           await app.setCursorSize(n); box.querySelectorAll('#sp-cursor .qm-btn').forEach(b => b.classList.toggle('on', b === e.currentTarget)); } }, label))),
+      el('div', { class: 'qm-note', style: 'font-style:normal;opacity:1;margin-top:14px' }, 'Speed of turning pages'),
+      el('div', { class: 'qm-row', id: 'sp-flip' }, ...[[0, 'Instant'], [0.55, 'Brisk'], [1, 'Usual'], [1.7, 'Leisurely']].map(([k, label]) =>
+        el('button', { class: 'qm-btn wide' + ((s.flipSpeed ?? 1) === k ? ' on' : ''), onclick: (e) => {
+          app.setFlipSpeed(k); box.querySelectorAll('#sp-flip .qm-btn').forEach(b => b.classList.toggle('on', b === e.currentTarget)); } }, label))),
       el('div', { class: 'qm-row', style: 'margin-top:12px' },
         el('button', { class: 'btn', id: 'sp-full', onclick: () => window.scribe.toggleFullscreen() }, 'Full screen (F11)'),
         el('button', { class: 'btn', id: 'sp-flow', 'data-tip': 'Spread overflowing writing onto the pages that follow', onclick: () => { box.close(); openFlow(); } }, 'Let the words flow…')),
@@ -304,6 +308,7 @@ function actions() {
     { label: 'Scale the menus (comfort)', keys: 'scale zoom bigger interface ui size comfort eyes read', where: 'the Spectacles', prop: 'spectacles', run: () => openSpectacles() },
     { label: 'Size of the cursor (mouse pointer)', keys: 'cursor mouse pointer size bigger arrow large', where: 'the Spectacles', prop: 'spectacles', run: () => openSpectacles() },
     { label: 'Look for a new edition (update)', keys: 'update updates new version edition upgrade latest download raven', where: 'the Spectacles · the raven comes to the window', prop: 'spectacles', run: () => app.lookForEdition() },
+    { label: 'Speed of turning pages', keys: 'page turn flip speed animation fast slow instant turning', where: 'the Spectacles', prop: 'spectacles', run: () => openSpectacles() },
     { label: 'Full screen', keys: 'full screen fullscreen maximise maximize', where: 'the Spectacles · F11', prop: 'spectacles', run: () => window.scribe.toggleFullscreen() },
     { label: 'Leave the desk (back to the window)', keys: 'back return menu home main menu window look up leave desk library', where: 'the Candle · or the top edge of the screen', prop: 'candle', run: () => app.leaveDesk() },
     { label: 'Close Scriptorium', keys: 'quit exit close application leave door', where: 'the Doorway: look left from the window', run: () => app.quitApp() },

@@ -29,6 +29,7 @@ Everything you see in Scriptorium right now is a placeholder I drew in code. Eac
 | **Window scene** (the start view) | 620×720 window, arched top | One backdrop: night sky, distant hills, castle with lit windows. Plus a separate **lattice** overlay (lead diamonds and the stone cross), and the **stone arch frame**. | Stars, moon, clouds and the moonlight glow are animated in code, so leave them out of the backdrop or paint them as separate pieces. A daytime version would allow a day/night cycle later. |
 | **Door** (quit) | 440×700 | idle ×1, hover ×3 (ring knocker swings), open ×3 (door swings open onto the night) | Stone arch around it. Drawn from straight on. |
 | **Raven** (brings word of a new edition) | 170×186 | idle ×4 (head tilts), hover ×3 (wings flap, small hop) | Perches on the window sill with a small sealed letter tied to its leg. Faces right. |
+| **Reading nook**: fireplace (520×520), fire (240×200, idle ×4), armchair (420×470), side table (160×222) | as listed | The fire flickers. Everything else is still. | A cozy corner between the Library and the door. |
 | **Wall torch** | 120×240 | idle ×3 (flame flicker) | Iron sconce. Two of them flank the door. |
 | **Lectern** (book stand) | about 1100×920 | still | Slanted backboard, a ledge the book rests on, and two legs. The book sits in front of it, so the middle can stay plain. |
 | **Desk top** | 1024×1024+ | **must tile seamlessly** | Planks running **away from you** (top to bottom). I put it in perspective in code. |

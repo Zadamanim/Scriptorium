@@ -53,7 +53,7 @@ The installer never touches the Library or the settings. It also quietly removes
 | `preload.js` | The narrow, safe bridge between the page and the filesystem |
 | `updater.js` | The raven: checking for, downloading, verifying and installing new editions, plus the Library backup |
 | `fontinfo.js` | Reads a font's name and embedding permission (OS/2 `fsType`) |
-| `src/index.html`, `src/styles.css` | The room's four views: the window (start), the doorway (quit), the Library and the desk |
+| `src/index.html`, `src/styles.css` | The room, a full circle: the window (start), the Library, the reading nook, the doorway (quit), and the desk below the window |
 | `src/js/flow.js` | “Let the words flow”: pours text across pages, splitting paragraphs and lists at words |
 | `src/js/editor.js` | The open book: the two-page spread, page breaks, chapters, formatting |
 | `src/js/desk.js` | The props: Quill menu, Inkwell, Crystal Ball, Spectacles, Wax Seal |

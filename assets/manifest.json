@@ -255,5 +255,18 @@
    "props/raven_hover2.svg",
    "props/raven_hover3.svg"
   ]
+ },
+ "fire": {
+  "size": [
+   240,
+   200
+  ],
+  "fps": 8,
+  "idle": [
+   "props/fire1.svg",
+   "props/fire2.svg",
+   "props/fire3.svg",
+   "props/fire4.svg"
+  ]
  }
 }

@@ -6,7 +6,7 @@ import { newBook, normalizeBook } from './book.js';
 import { initTooltips, dialog, toast, dialogOpen, el, confirmBox, STAY } from './ui.js';
 import * as E from './editor.js';
 import { initDesk, props, openCrystal } from './desk.js';
-import { renderLibrary, chooseShelf, addShelfFlow } from './library.js';
+import { renderLibrary, chooseShelf, addShelfFlow, pushBack } from './library.js';
 import { initMessenger, lookNow } from './messenger.js';
 
 const S = { settings: null, view: null, book: null, path: null, dirty: false, seal: null, leaving: false, W: 1720, H: 1000 };
@@ -33,11 +33,18 @@ let candle, door;
 
   document.getElementById('lib-new-shelf').addEventListener('click', async () => { if (await addShelfFlow()) showLibrary(); });
   document.getElementById('lib-reveal').addEventListener('click', () => window.scribe.library.reveal());
+  document.getElementById('lib-scroll').addEventListener('click', () => pushBack());
+  document.getElementById('lib-scroll').addEventListener('scroll', () => pushBack(), { passive: true });
+  document.getElementById('nook-shelve').addEventListener('click', () => fromNook(() => showLibrary('left')));
+  document.getElementById('nook-to-desk').addEventListener('click', () => readToWrite());
+  new Prop(document.getElementById('prop-fire'), 'fire', { hover: false });
+  new Prop(document.getElementById('prop-nook-candle'), 'candle', { hover: false });
   document.getElementById('lib-open-elsewhere').addEventListener('click', async () => { const p = await window.scribe.tome.openDialog(); if (p) openPath(p); });
   document.querySelectorAll('.edge').forEach(e => e.addEventListener('click', () => EDGES[S.view]?.[e.dataset.dir]?.[1]()));
 
-  initDesk({ save, saveAs, leaveDesk, quitApp, clasp: claspFlow, settings: () => S.settings, lookForEdition: () => lookNow(), version: () => S.version, setUiScale, setCursorSize: async (n) => { S.settings.cursorSize = n; await applyCursors(n); window.scribe.setSettings({ cursorSize: n }); }, updateSettings: (s) => { S.settings = s; } });
+  initDesk({ save, saveAs, leaveDesk, quitApp, clasp: claspFlow, setFlipSpeed: (k) => { S.settings.flipSpeed = k; E.setFlipSpeed(k); window.scribe.setSettings({ flipSpeed: k }); }, settings: () => S.settings, lookForEdition: () => lookNow(), version: () => S.version, setUiScale, setCursorSize: async (n) => { S.settings.cursorSize = n; await applyCursors(n); window.scribe.setSettings({ cursorSize: n }); }, updateSettings: (s) => { S.settings = s; } });
   E.initBookChrome();
+  E.setFlipSpeed(S.settings.flipSpeed ?? 1);
   initMessenger({ toWindow: async () => { if (S.view === 'desk') await leaveDesk(); else if (S.view === 'door') await look('hall', 'right'); else if (S.view === 'library') await look('hall', 'left'); } });
   E.ed.onDirty = () => setDirty(true);
   E.ed.onTitle = () => updateTitle();
@@ -84,8 +91,9 @@ const EDGES = {
     right: ['Look right — the Library', () => showLibrary('right')],
     down: ['Look down — the desk: begin a new book', () => startNewBook()],
   },
-  door: { right: ['Look right — back to the Window', () => look('hall', 'right')] },
-  library: { left: ['Look left — back to the Window', () => look('hall', 'left')] },
+  door: { right: ['Look right — back to the Window', () => look('hall', 'right')], left: ['Look left — the reading nook', () => toNook('left')] },
+  library: { left: ['Look left — back to the Window', () => look('hall', 'left')], right: ['Look right — the reading nook', () => toNook('right')] },
+  nook: { left: ['Look left — the Library', () => fromNook(() => showLibrary('left'))], right: ['Look right — the Doorway', () => fromNook(() => look('door', 'right'))] },
   desk: { up: ['Look up from the desk — back to the Window', () => leaveDesk()] },
 };
 function setEdges(view) {
@@ -145,7 +153,8 @@ async function guardUnsaved(verb = 'leave this book') {
 function enterDesk() { candle.release(); document.getElementById('view-desk').classList.remove('dark'); }
 
 async function startNewBook() {
-  S.book = newBook(); S.path = null; S.seal = null;
+  S.book = newBook(); S.path = null; S.seal = null; S.mode = 'write';
+  E.ed.readOnly = false; placeBook('desk');
   E.ed.locked = false; E.ed.sealed = false;
   enterDesk();
   E.openBook(S.book, { spread: 1 });
@@ -155,20 +164,61 @@ async function startNewBook() {
   E.focusPageText(first, 'end');
 }
 
+const pickBook = (path, mode) => openPath(path, undefined, mode);
 async function showLibrary(dir) {
-  if (dir) { const p = renderLibrary((x) => openPath(x)); await look('library', dir); await p; }
-  else { show('library'); await renderLibrary((p) => openPath(p)); }
+  if (dir) { const p = renderLibrary(pickBook); await look('library', dir); await p; }
+  else { show('library'); await renderLibrary(pickBook); }
 }
 
-async function openPath(p, words) {
-  if (S.path === p && S.view === 'desk' && !E.ed.locked) return;
+// ------------------------------------------------------------------ the reading nook
+// The same book object moves between the lectern and the reader's lap.
+function placeBook(where) {
+  const book = document.getElementById('book');
+  const slot = where === 'nook' ? document.getElementById('nook-slot') : document.querySelector('#view-desk .lectern');
+  if (where === 'nook') slot.append(book); else slot.after(book);
+}
+function toNook(dir) { return look('nook', dir); }
+/** leaving the nook puts the book back on its shelf */
+async function fromNook(go) {
+  await go();
+  if (S.mode === 'read') stopReading();
+}
+function stopReading() {
+  document.getElementById('view-nook').classList.remove('reading');
+  E.ed.readOnly = false;
+  placeBook('desk');
+  if (S.mode === 'read') { S.book = null; S.path = null; S.seal = null; E.ed.locked = false; }
+  S.mode = null;
+}
+async function readToWrite() {
+  // carry the book to the desk: same pages, now with a quill
+  E.ed.readOnly = false;
+  await fade(() => {
+    document.getElementById('view-nook').classList.remove('reading');
+    placeBook('desk'); enterDesk(); S.mode = 'write'; E.render(); show('desk');
+  });
+}
+/** a quick fade through darkness instead of turning the head */
+async function fade(swap) {
+  const d = document.getElementById('darkness');
+  d.classList.add('fast', 'on');
+  await new Promise(r => setTimeout(r, 380));
+  await swap();
+  await new Promise(r => setTimeout(r, 60));
+  d.classList.remove('on');
+  setTimeout(() => d.classList.remove('fast'), 400);
+}
+
+async function openPath(p, words, mode) {
+  mode = mode || S.mode || 'write';
+  if (S.path === p && S.view === (mode === 'read' ? 'nook' : 'desk') && !E.ed.locked) return;
   if (!(await guardUnsaved('open another'))) return;
   document.body.classList.add('busy');
   try {
     const t = await window.scribe.tome.open(p, words);
     if (t.wrongWords) return 'wrong';
     await registerEmbedded(t.fonts || []);
-    const unlockingSame = E.ed.locked && S.path === p && S.view === 'desk';
+    const unlockingSame = E.ed.locked && S.path === p && (S.view === 'desk' || S.view === 'nook');
     S.path = t.path;
     if (t.locked) {
       S.book = normalizeBook({ title: t.manifest.title, author: t.manifest.author });
@@ -185,9 +235,20 @@ async function openPath(p, words) {
       await E.goToSpread(S.book.title ? 1 : 0);
       return 'ok';
     }
+    S.mode = mode;
+    E.ed.readOnly = mode === 'read';
+    if (mode === 'read') {
+      placeBook('nook');
+      E.openBook(S.book, { spread: -1 });
+      document.getElementById('view-nook').classList.add('reading');
+      if (S.view !== 'nook') await look('nook', S.view === 'door' ? 'left' : 'right');
+      return 'ok';
+    }
+    placeBook('desk');
     enterDesk();
     E.openBook(S.book, { spread: -1 });
-    if (S.view !== 'desk') await look('desk', 'down');
+    if (S.view === 'hall') await look('desk', 'down');
+    else if (S.view !== 'desk') await fade(() => show('desk'));
     return 'ok';
   } catch (e) {
     console.error(e);
@@ -274,7 +335,7 @@ async function unlockFlow() {
     S.hint ? el('p', { class: 'small' }, `A riddle is scratched beside the seal: “${S.hint}”`) : null, words);
   const w = await dialog({ title: 'Speak the Magic Words', body, buttons: [{ label: 'Nay', value: null }, { label: 'Speak', kind: 'primary', value: () => words.value }] });
   if (w == null || w === '') return;
-  const r = await openPath(S.path, w);
+  const r = await openPath(S.path, w, S.mode);
   if (r === 'wrong') toast('The seal holds fast. Those are not the words.', 3200);
 }
 
@@ -290,7 +351,7 @@ async function leaveDesk() {
     setTimeout(async () => {
       await look('hall', 'up');
       S.book = null; S.path = null; S.seal = null; E.ed.locked = false; setDirty(false);
-      S.leaving = false;
+      S.leaving = false; S.mode = null;
     }, 350);
   });
 }
@@ -309,6 +370,10 @@ function onKey(e) {
   const ctrl = e.ctrlKey || e.metaKey;
   if (e.key === 'F11') { e.preventDefault(); window.scribe.toggleFullscreen(); return; }
   if (dialogOpen() || looking) return;
+  if (S.view === 'nook' && S.mode === 'read' && !e.target.closest('input,[contenteditable="true"]')) {
+    if (e.key === 'ArrowRight' || e.key === 'PageDown') { e.preventDefault(); E.turn(1); return; }
+    if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); E.turn(-1); return; }
+  }
   if (S.view !== 'desk') {
     const dir = { ArrowLeft: 'left', ArrowRight: 'right', ArrowUp: 'up', ArrowDown: 'down' }[e.key];
     const c = dir && EDGES[S.view]?.[dir];

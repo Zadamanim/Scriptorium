@@ -105,6 +105,7 @@ export function initTooltips() {
   let timer = null, target = null, mx = 0, my = 0;
   const place = () => { const w = tip.offsetWidth; tip.style.left = Math.min(window.innerWidth - w - 8, mx + 18) + 'px'; tip.style.top = Math.min(window.innerHeight - tip.offsetHeight - 8, my + 22) + 'px'; };
   document.addEventListener('mouseover', (e) => {
+    mx = e.clientX; my = e.clientY;
     const t = e.target.closest('[data-tip]');
     if (t === target) return;
     target = t; clearTimeout(timer); tip.style.display = 'none';

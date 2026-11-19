@@ -7,12 +7,13 @@ import { redistribute } from './flow.js';
 export const ed = {
   book: null, spread: 1,
   savedRange: null, savedEditable: null, pendingSize: null,
-  sealed: false, locked: false, hint: '',
+  sealed: false, locked: false, hint: '', readOnly: false,
+  flip: 1, // page-turn speed: 0 instant, 0.55 brisk, 1 usual, 1.7 leisurely
   onDirty: () => {}, onTitle: () => {}, onSelection: () => {}, onClasp: () => {}, onUnlock: () => {}, onFlow: () => {},
 };
 export function initBookChrome() {
   document.getElementById('front-cover').addEventListener('click', () => { if (ed.locked) ed.onUnlock(); else goToSpread(0); });
-  document.getElementById('clasp').addEventListener('click', () => { if (ed.locked) ed.onUnlock(); else ed.onClasp(); });
+  document.getElementById('clasp').addEventListener('click', () => { if (ed.locked) ed.onUnlock(); else if (ed.readOnly) toast('Books are sealed at the writing desk.'); else ed.onClasp(); });
 }
 const pages = () => ed.book.pages;
 const $spread = () => document.getElementById('spread');
@@ -32,6 +33,7 @@ export function openBook(book, { spread = 1, focusFirst = false } = {}) {
   }
 }
 
+export function setFlipSpeed(k) { ed.flip = k; document.documentElement.style.setProperty('--flip-k', String(k || 0.01)); }
 export function applyBookSettings() {
   const s = ed.book.settings, b = document.getElementById('book');
   b.style.setProperty('--body-font', `${cssFamily(s.bodyFont)}, serif`);
@@ -47,6 +49,7 @@ export function render() {
   const book = document.getElementById('book');
   book.classList.toggle('closed', ed.spread < 0);
   book.classList.toggle('sealed', ed.sealed || ed.locked);
+  book.classList.toggle('readonly', ed.readOnly);
   renderCover();
   if (ed.spread < 0) return;
   const [l, r] = indicesOf(ed.spread);
@@ -82,7 +85,7 @@ function renderPage(i, side) {
       el('div', { class: 'ex' }, 'Ex Libris'), el('div', { class: 'who' }, ed.book.author || 'a Scribe unknown')));
   }
   if (i >= P.length) {
-    if (i === P.length) {
+    if (i === P.length && !ed.readOnly) {
       const pg = el('div', { class: `page ${side}` });
       pg.append(el('button', { class: 'add-leaf clickable', 'data-tip': 'Sew another blank page into the book', onclick: () => addPageAt(P.length, true) }, '✚ Add a fresh leaf'));
       return pg;
@@ -99,9 +102,9 @@ function renderPage(i, side) {
 
 function renderTitle() {
   const wrap = el('div', { class: 'title-page' });
-  const t = el('div', { class: 'book-title', contenteditable: 'plaintext-only', spellcheck: 'true', 'data-field': 'title' });
+  const t = el('div', { class: 'book-title', contenteditable: ed.readOnly ? 'false' : 'plaintext-only', spellcheck: 'true', 'data-field': 'title' });
   t.textContent = ed.book.title;
-  const a = el('div', { class: 'book-author', contenteditable: 'plaintext-only', spellcheck: 'false', 'data-field': 'author' });
+  const a = el('div', { class: 'book-author', contenteditable: ed.readOnly ? 'false' : 'plaintext-only', spellcheck: 'false', 'data-field': 'author' });
   a.textContent = ed.book.author;
   for (const f of [t, a]) {
     f.addEventListener('input', () => { ed.book[f.dataset.field] = f.textContent.replace(/\n/g, ' '); markDirty(); ed.onTitle(); const who = document.querySelector('.bookplate .who'); if (who) who.textContent = ed.book.author || 'a Scribe unknown'; });
@@ -135,7 +138,7 @@ function renderText(pg, p, i, side) {
   if (p.chapter) {
     pg.classList.add('chapter-start');
     if (p.chapter.dropCap) pg.classList.add('dropcap');
-    const ct = el('div', { class: 'chapter-title', contenteditable: 'plaintext-only', spellcheck: 'true' });
+    const ct = el('div', { class: 'chapter-title', contenteditable: ed.readOnly ? 'false' : 'plaintext-only', spellcheck: 'true' });
     ct.textContent = p.chapter.title;
     ct.addEventListener('input', () => { p.chapter.title = ct.textContent.replace(/\n/g, ' '); markDirty(); refreshContents(); });
     ct.addEventListener('keydown', (e) => { if (e.key === 'Enter' || (e.key === 'ArrowDown')) { e.preventDefault(); focusPageText(i, 'start'); } });
@@ -144,7 +147,7 @@ function renderText(pg, p, i, side) {
     const head = side === 'left' ? ed.book.title : (chapterAt(i)?.title || '');
     if (head) pg.append(el('div', { class: 'runhead' }, head));
   }
-  const text = el('div', { class: 'text', contenteditable: 'true', spellcheck: 'true' });
+  const text = el('div', { class: 'text', contenteditable: ed.readOnly ? 'false' : 'true', spellcheck: ed.readOnly ? 'false' : 'true' });
   text.innerHTML = p.html || '<p><br></p>';
   text.addEventListener('input', () => onTextInput(text, p, pg));
   text.addEventListener('keydown', (e) => onTextKey(e, text, i));
@@ -274,11 +277,13 @@ export function goToSpread(s) {
   const fwd = s > ed.spread;
   turning = true;
   const book = document.getElementById('book');
+  const k = ed.flip;
+  if (!k) { ed.spread = s; ed.savedRange = null; render(); turning = false; return Promise.resolve(); }
   const leaf = el('div', { class: 'turning-leaf ' + (fwd ? 'fwd' : 'back') });
   book.append(leaf);
   return new Promise((res) => {
-    setTimeout(() => { ed.spread = s; ed.savedRange = null; render(); }, 210);
-    setTimeout(() => { leaf.remove(); turning = false; res(); }, 430);
+    setTimeout(() => { ed.spread = s; ed.savedRange = null; render(); }, 210 * k);
+    setTimeout(() => { leaf.remove(); turning = false; res(); }, 430 * k);
   });
 }
 function coverLeaf(dir) {
@@ -294,7 +299,9 @@ function swingCover(s) {
   turning = true;
   const book = document.getElementById('book');
   ed.savedRange = null;
-  const SWING = 600;
+  const k = ed.flip;
+  if (!k) { ed.spread = s; render(); book.style.transform = ''; turning = false; return Promise.resolve(); }
+  const SWING = 600 * k;
   if (s >= 0) { // opening: slide into place, then lift the cover over to the left
     book.style.transform = 'none';
     return new Promise((res) => setTimeout(() => {
@@ -303,7 +310,7 @@ function swingCover(s) {
       ed.spread = s; render();
       book.append(leaf);
       setTimeout(() => { book.classList.remove('swinging'); leaf.remove(); book.style.transform = ''; turning = false; res(); }, SWING);
-    }, 330));
+    }, 330 * k));
   }
   // closing: the cover swings over from the left, then the book slides to the middle
   renderCover();
@@ -313,7 +320,7 @@ function swingCover(s) {
   return new Promise((res) => setTimeout(() => {
     ed.spread = -1; render();
     book.classList.remove('swinging'); leaf.remove();
-    setTimeout(() => { turning = false; res(); }, 360);
+    setTimeout(() => { turning = false; res(); }, 360 * k);
   }, SWING));
 }
 export function focusPageText(i, where = 'start') {

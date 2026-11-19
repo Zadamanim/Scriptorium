@@ -40,16 +40,42 @@
     </div></section>
 
     <!-- ============ THE LIBRARY ============ -->
-    <section id="view-library" class="screen"><div class="content">
-      <div class="wall bleed"></div>
-      <div class="floor-plane"></div>
-      <h1 class="lib-title">The Library</h1>
-      <div class="lib-actions">
-        <button class="plaque clickable" id="lib-new-shelf">&#10010; Build a New Shelf</button>
-        <button class="plaque clickable" id="lib-open-elsewhere" data-tip="Open a .tome kept somewhere else on thy computer">Open a Tome from Elsewhere…</button>
-        <button class="plaque clickable" id="lib-reveal" data-tip="Open the Library folder on thy computer">Show the Library Folder</button>
+    <section id="view-library" class="screen">
+      <div id="lib-scroll">
+        <div id="lib-inner">
+          <div class="wall lib-wall"></div>
+          <h1 class="lib-title">The Library</h1>
+          <div class="lib-actions">
+            <button class="plaque clickable" id="lib-new-shelf">&#10010; Build a New Shelf</button>
+            <button class="plaque clickable" id="lib-open-elsewhere" data-tip="Open a .tome kept somewhere else on thy computer">Open a Tome from Elsewhere…</button>
+            <button class="plaque clickable" id="lib-reveal" data-tip="Open the Library folder on thy computer">Show the Library Folder</button>
+          </div>
+          <div id="bookcase"></div>
+        </div>
       </div>
-      <div id="bookcase"></div>
+    </section>
+
+    <!-- ============ THE READING NOOK (between the Library and the Doorway) ============ -->
+    <section id="view-nook" class="screen"><div class="content">
+      <div class="wall bleed"></div>
+      <div class="floor-plane nook-floor"></div>
+      <div class="rug"></div>
+      <img class="nook-fireplace" src="../assets/scenes/fireplace.svg" alt="">
+      <div class="prop" id="prop-fire"></div>
+      <div class="fireglow bleed"></div>
+      <img class="nook-chair" src="../assets/scenes/armchair.svg" alt="">
+      <img class="nook-table" src="../assets/scenes/sidetable.svg" alt="">
+      <div class="prop" id="prop-nook-candle"></div>
+      <div class="nook-hint parch">Choose a book in the Library and it shall be read here, by the fire.</div>
+      <div class="nook-reading">
+        <div class="nook-dim bleed"></div>
+        <div class="blanket bleed-x"></div>
+        <div id="nook-slot"></div>
+        <div class="nook-actions">
+          <button class="plaque clickable" id="nook-shelve" data-tip="Close the book and put it back on its shelf">&#10229; Back on the shelf</button>
+          <button class="plaque clickable" id="nook-to-desk" data-tip="Carry this book to the writing desk">Take it to the desk &#10230;</button>
+        </div>
+      </div>
     </div></section>
 
     <!-- ============ THE DESK ============ -->

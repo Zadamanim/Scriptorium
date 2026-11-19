@@ -119,6 +119,34 @@ body.busy, body.busy * { cursor: var(--cur-wait) !important; }
 #prop-raven.show { display: block; animation: alight .7s steps(4) 1; }
 @keyframes alight { from { transform: translate(120px, -160px) scale(.6); opacity: 0; } to { transform: none; opacity: 1; } }
 
+/* ------------------------------------------------------------- the reading nook */
+#view-nook .wall { filter: brightness(.5) saturate(.8) sepia(.25); }
+.nook-floor { top: 860px; background: linear-gradient(rgba(0,0,0,.55), rgba(0,0,0,0) 40%), url(../assets/textures/wood_v.png); background-size: 100% 100%, 520px; filter: brightness(.75); }
+.rug { position: absolute; left: 360px; top: 880px; width: 1000px; height: 120px; border-radius: 50%; z-index: 1;
+  background: radial-gradient(ellipse, #7a1c16 0 38%, #b8902e 38% 41%, #5a1410 41% 60%, #b8902e 60% 62%, #3a0c0a 62% 70%, transparent 71%); opacity: .9; }
+.nook-fireplace { position: absolute; left: 150px; top: 330px; width: 520px; height: 520px; z-index: 2; }
+#prop-fire { left: 290px; top: 640px; width: 240px; height: 200px; z-index: 3; cursor: default; }
+.fireglow { z-index: 4; animation: fireflicker 1.6s steps(4) infinite;
+  background: radial-gradient(circle 700px at calc(3000px + 410px) calc(2000px + 760px), rgba(255,140,50,.30), rgba(255,120,40,.08) 55%, rgba(0,0,0,0)),
+              radial-gradient(ellipse 1300px 900px at calc(3000px + 860px) calc(2000px + 540px), rgba(0,0,0,0) 50%, rgba(5,2,0,.6) 100%); }
+@keyframes fireflicker { 0%,100% { opacity: .9; } 25% { opacity: 1; } 50% { opacity: .82; } 75% { opacity: .96; } }
+.nook-chair { position: absolute; left: 860px; top: 420px; width: 420px; height: 470px; z-index: 3; }
+.nook-table { position: absolute; left: 1330px; top: 664px; width: 160px; height: 222px; z-index: 3; }
+#prop-nook-candle { left: 1362px; top: 506px; width: 96px; height: 192px; z-index: 3; cursor: default; }
+.nook-hint { position: absolute; left: 610px; top: 120px; width: 500px; padding: 14px 24px; text-align: center; font-size: 22px; font-style: italic; z-index: 5; }
+.nook-reading { display: none; }
+#view-nook.reading .nook-reading { display: block; }
+#view-nook.reading .nook-hint { display: none; }
+.nook-dim { z-index: 6; background: rgba(8,4,2,.62); }
+.blanket { top: 900px; height: 600px; z-index: 7; border-radius: 40% 40% 0 0 / 60px 60px 0 0;
+  background: repeating-linear-gradient(90deg, rgba(184,144,46,.35) 0 4px, transparent 4px 60px), repeating-linear-gradient(0deg, rgba(139,26,18,.55) 0 10px, transparent 10px 60px),
+    repeating-linear-gradient(90deg, rgba(139,26,18,.45) 0 10px, transparent 10px 60px), #24402f; box-shadow: 0 -10px 30px rgba(0,0,0,.6); }
+#nook-slot { position: absolute; inset: 0; z-index: 8; pointer-events: none; }
+#nook-slot .book { pointer-events: auto; top: 96px; }
+.nook-actions { position: absolute; left: 0; right: 0; top: 918px; display: flex; justify-content: center; gap: 520px; z-index: 9; }
+.book.readonly .overflow-flag, .book.readonly .add-leaf { display: none !important; }
+.book.readonly [contenteditable] { cursor: var(--cur-default); }
+
 /* ------------------------------------------------------------- the doorway */
 #view-door .wall { filter: brightness(.55) saturate(.7); }
 .torchlight { z-index: 1;
@@ -129,31 +157,62 @@ body.busy, body.busy * { cursor: var(--cur-wait) !important; }
 #prop-torch-r { left: 1180px; top: 300px; width: 96px; height: 192px; z-index: 3; cursor: default; }
 
 /* ------------------------------------------------------------- library */
-#view-library .wall { filter: brightness(.6) saturate(.7); }
-.lib-title { position: absolute; top: 14px; left: 0; right: 0; margin: 0; text-align: center; font-family: 'UnifrakturMaguntia', serif; font-weight: normal; font-size: 80px; color: #e8c97a; text-shadow: 0 3px 0 #000; z-index: 2; }
-.lib-actions { position: absolute; top: 116px; left: 0; right: 0; display: flex; justify-content: center; gap: 14px; z-index: 3; }
+/* the scroller holds a fixed point of view (perspective) at the screen centre:
+   scrolling moves the 3D bookcase past it, so the shelves tilt as they go by */
+#lib-scroll { position: absolute; inset: 0; overflow-y: auto; overflow-x: hidden; perspective: 1300px; perspective-origin: 50% 50%;
+  background: url(../assets/textures/wall.png) repeat local; background-size: 420px; }
+#lib-scroll::before { content: ''; position: fixed; inset: 0; pointer-events: none; }
+#lib-scroll::-webkit-scrollbar { width: 12px; }
+#lib-scroll::-webkit-scrollbar-thumb { background: linear-gradient(90deg, #8a6420, #f1d27c, #8a6420); border-radius: 6px; border: 2px solid #2a170a; }
+#lib-scroll::-webkit-scrollbar-track { background: rgba(0,0,0,.45); }
+#lib-inner { position: relative; width: 1720px; margin: 0 auto; transform-style: preserve-3d; }
+.lib-wall { display: none; }
+.lib-title { position: absolute; top: 4px; left: 0; right: 0; margin: 0; text-align: center; font-family: 'UnifrakturMaguntia', serif; font-weight: normal; font-size: 76px; color: #e8c97a; text-shadow: 0 3px 0 #000; }
+.lib-actions { position: absolute; top: 100px; left: 0; right: 0; display: flex; justify-content: center; gap: 14px; }
 .plaque { font-family: var(--title-font); font-size: 17px; color: #3a250c; padding: 6px 14px; border-radius: 4px;
   background: linear-gradient(#e8c26a, #b28630); border: 2px solid #5c3d10; box-shadow: 0 3px 6px rgba(0,0,0,.5); }
 .plaque:hover { filter: brightness(1.12); }
-#bookcase { position: absolute; left: 310px; top: 168px; width: 1100px; height: 740px; overflow-y: auto; overflow-x: hidden; z-index: 2;
-  background: #24150a url(../assets/textures/shelfwood.png); background-size: 500px; border: 14px solid #1b0f06; border-radius: 4px;
-  box-shadow: inset 0 0 60px rgba(0,0,0,.85), 0 20px 40px rgba(0,0,0,.6); padding: 10px 26px 30px; }
-.shelf { position: relative; margin-top: 18px; }
-.shelf-label { display: inline-block; margin: 0 0 6px 6px; font-family: var(--title-font); font-size: 18px; color: #3a250c; padding: 3px 14px;
-  background: linear-gradient(#f1d27c, #b28630); border: 2px solid #5c3d10; border-radius: 3px; box-shadow: 0 2px 4px rgba(0,0,0,.6); }
-.shelf-row { position: relative; display: flex; align-items: flex-end; gap: 4px; min-height: 190px; padding: 0 10px 0;
-  background: linear-gradient(rgba(0,0,0,.55), rgba(0,0,0,.25)); border-bottom: 20px solid #5a3818;
-  box-shadow: 0 12px 10px -6px rgba(0,0,0,.8); flex-wrap: wrap; row-gap: 10px; }
-.shelf-empty { color: #b9a274; font-style: italic; font-size: 20px; padding: 0 0 70px 20px; opacity: .8; }
-.spine { position: relative; width: 52px; border-radius: 3px 3px 1px 1px; color: #f3dfa8; font-family: var(--title-font);
-  box-shadow: inset 4px 0 6px rgba(255,255,255,.12), inset -6px 0 8px rgba(0,0,0,.45), 2px 0 3px rgba(0,0,0,.6);
-  display: flex; align-items: center; justify-content: center; transition: transform .12s steps(2); }
-.spine::before, .spine::after { content: ''; position: absolute; left: 4px; right: 4px; height: 4px; background: linear-gradient(90deg,#8a6420,#f1d27c,#8a6420); }
-.spine::before { top: 14px; } .spine::after { bottom: 14px; }
-.spine span { writing-mode: vertical-rl; transform: rotate(180deg); font-size: 15px; max-height: 70%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-shadow: 0 1px 0 #000; }
-.spine:hover { transform: translateY(-14px); }
-.spine.broken { filter: grayscale(1) brightness(.6); }
-.spine .wax { position: absolute; bottom: 22px; left: 50%; width: 30px; height: 30px; margin-left: -15px; }
+
+#bookcase { position: absolute; transform-style: preserve-3d; }
+.f3 { position: absolute; left: 0; top: 0; }
+#bookcase .case-front { position: absolute; left: 0; top: 0; pointer-events: none; transform-style: flat; }
+#bookcase .case-front .board-front { pointer-events: auto; }
+#bookcase .back { background: linear-gradient(rgba(0,0,0,.6), rgba(0,0,0,.15) 60px, rgba(0,0,0,.35) 214px, rgba(0,0,0,.6)),
+  url(../assets/textures/shelfwood.png); background-size: 100% 100%, 500px; filter: brightness(.55); }
+#bookcase .side { background: linear-gradient(90deg, rgba(0,0,0,.05), rgba(0,0,0,.6)), url(../assets/textures/shelfwood.png); background-size: 100% 100%, 400px; }
+#bookcase .side.l { filter: brightness(.95); } #bookcase .side.r { filter: brightness(.7); }
+#bookcase .under { background: linear-gradient(rgba(0,0,0,.2), rgba(0,0,0,.75)), url(../assets/textures/shelfwood.png); background-size: 100% 100%, 400px; }
+#bookcase .board-top { background: linear-gradient(rgba(255,220,170,.10), rgba(0,0,0,.65)), url(../assets/textures/shelfwood.png); background-size: 100% 100%, 400px; }
+#bookcase .board-under { background: linear-gradient(rgba(0,0,0,.45), rgba(0,0,0,.8)), url(../assets/textures/shelfwood.png); background-size: 100% 100%, 400px; }
+#bookcase .board-front { background: linear-gradient(#b07a40 0 2px, #7a4a22 2px, #4a2a12), url(../assets/textures/shelfwood.png); background-blend-mode: multiply; background-size: 100% 100%, 400px;
+  display: flex; align-items: center; justify-content: center; box-shadow: 0 6px 10px rgba(0,0,0,.45); }
+#bookcase .post { background: linear-gradient(90deg, #2a170a, #8a5a2e 30%, #5a3818 70%, #1d1006), url(../assets/textures/shelfwood.png); background-blend-mode: multiply; background-size: 100% 100%, 400px;
+  box-shadow: 0 0 18px rgba(0,0,0,.6); }
+#bookcase .crown { border-radius: 4px 4px 0 0; box-shadow: 0 10px 20px rgba(0,0,0,.6);
+  background: linear-gradient(#c08a4a 0 4px, #6a4220 4px 14px, #a06a36 14px 18px, #4a2c14 18px 44px, #8a5a2e 44px 48px, #2a170a 48px), url(../assets/textures/shelfwood.png); background-blend-mode: multiply; background-size: 100% 100%, 400px; }
+.shelf-plaque { font-family: var(--title-font); font-size: 15px; color: #3a250c; padding: 1px 14px; border-radius: 2px;
+  background: linear-gradient(#f1d27c, #b28630); border: 1px solid #5c3d10; box-shadow: 0 1px 3px rgba(0,0,0,.6); white-space: nowrap; }
+.shelf-empty { position: absolute; width: 700px; height: 40px; opacity: .8; }
+.shelf-empty::after { content: 'This shelf stands empty.'; color: #c9b282; font-style: italic; font-size: 26px; }
+
+.book3d { position: absolute; transform-style: preserve-3d; transition: transform .3s ease-out; }
+.book3d:hover { transform: translateZ(10px); }
+.book3d.pulled { transform: translateZ(96px) translateY(-6px); }
+.book3d .spine { border-radius: 3px 3px 1px 1px; color: #f3dfa8; font-family: var(--title-font); display: flex; align-items: center; justify-content: center;
+  box-shadow: inset 4px 0 6px rgba(255,255,255,.14), inset -6px 0 8px rgba(0,0,0,.45); }
+.book3d .spine::before, .book3d .spine::after { content: ''; position: absolute; left: 4px; right: 4px; height: 4px; background: linear-gradient(90deg,#8a6420,#f1d27c,#8a6420); }
+.book3d .spine::before { top: 14px; } .book3d .spine::after { bottom: 14px; }
+.book3d .spine span { writing-mode: vertical-rl; transform: rotate(180deg); font-size: 15px; max-height: 68%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-shadow: 0 1px 0 #000; }
+.book3d .spine .wax { position: absolute; bottom: 22px; left: 50%; width: 30px; height: 30px; margin-left: -15px; }
+.book3d .btop { background: linear-gradient(90deg, var(--c) 0 4px, transparent 4px calc(100% - 4px), var(--c) calc(100% - 4px)),
+  repeating-linear-gradient(90deg, #efe3c4 0 2px, #d8c8a2 2px 3px); filter: brightness(.9); }
+.book3d .bside { filter: brightness(.6); }
+.book3d.broken { filter: grayscale(1) brightness(.6); }
+#book-card { width: 320px; text-align: center; }
+#book-card .bc-title { font-family: var(--title-font); font-size: 24px; color: var(--rubric); line-height: 1.2; margin: 4px 10px 4px; }
+#book-card .bc-author { font-style: italic; font-size: 19px; }
+#book-card .bc-sealed { font-size: 15px; font-style: italic; margin-top: 6px; color: #7a2a18; }
+#book-card .bc-btns { display: flex; gap: 10px; justify-content: center; margin-top: 16px; }
 
 /* ------------------------------------------------------------- the desk, seen from the chair */
 #view-desk .wall { filter: brightness(.45) saturate(.6); }
@@ -187,7 +246,7 @@ body.busy, body.busy * { cursor: var(--cur-wait) !important; }
 #prop-quill { left: 1480px; top: 470px; width: 120px; height: 370px; z-index: 7; transform: rotate(16deg); transform-origin: 60px 362px; }
 
 /* ------------------------------------------------------------- the book on its lectern */
-.book { position: absolute; left: 348px; top: 102px; width: 1024px; height: 754px; perspective: 2400px; z-index: 4; transition: transform .35s ease-in-out; }
+.book { position: absolute; left: 348px; top: 102px; width: 1024px; height: 754px; perspective: 2400px; z-index: 4; transition: transform calc(.35s * var(--flip-k, 1)) ease-in-out; }
 .book .cover { position: absolute; inset: 0; border-radius: 10px; background: url(../assets/textures/leather.png); background-size: 300px;
   box-shadow: 0 30px 50px rgba(0,0,0,.7), inset 0 0 0 3px #2a0b07, inset 0 0 0 7px rgba(201,162,76,.5), inset 0 0 40px rgba(0,0,0,.6); }
 .page-stack { position: absolute; top: 18px; bottom: 14px; width: 12px; background: repeating-linear-gradient(90deg, #d8c39a 0 1px, #b49a6c 1px 2px); border-radius: 2px; }
@@ -284,8 +343,8 @@ body.busy, body.busy * { cursor: var(--cur-wait) !important; }
 /* the leaf that flips during a page turn */
 .turning-leaf { position: absolute; top: 24px; width: 488px; height: 706px; z-index: 8; pointer-events: none; transform-style: preserve-3d;
   background: url(../assets/textures/parchment.png) center/100% 100%; box-shadow: 0 0 30px rgba(0,0,0,.3); }
-.turning-leaf.fwd { left: 512px; transform-origin: left center; animation: flipFwd .42s ease-in-out forwards; }
-.turning-leaf.back { left: 24px; transform-origin: right center; animation: flipBack .42s ease-in-out forwards; }
+.turning-leaf.fwd { left: 512px; transform-origin: left center; animation: flipFwd calc(.42s * var(--flip-k, 1)) ease-in-out forwards; }
+.turning-leaf.back { left: 24px; transform-origin: right center; animation: flipBack calc(.42s * var(--flip-k, 1)) ease-in-out forwards; }
 @keyframes flipFwd { from { transform: rotateY(0); } to { transform: rotateY(-180deg); } }
 @keyframes flipBack { from { transform: rotateY(0); } to { transform: rotateY(180deg); } }
 
@@ -325,8 +384,8 @@ body.busy, body.busy * { cursor: var(--cur-wait) !important; }
 .cover-leaf .front-cover { display: flex; left: 0; width: 100%; box-shadow: 0 0 30px rgba(0,0,0,.5), inset 0 0 40px rgba(0,0,0,.5); }
 .cover-leaf .back { transform: rotateY(180deg); border-radius: 12px 4px 4px 12px; background: url(../assets/textures/leather.png); background-size: 300px; }
 .cover-leaf .back .endpaper { position: absolute; left: 24px; top: 24px; width: 488px; height: 706px; }
-.cover-leaf.opening { animation: coverOpen .6s ease-in-out forwards; }
-.cover-leaf.closing { animation: coverClose .6s ease-in-out forwards; }
+.cover-leaf.opening { animation: coverOpen calc(.6s * var(--flip-k, 1)) ease-in-out forwards; }
+.cover-leaf.closing { animation: coverClose calc(.6s * var(--flip-k, 1)) ease-in-out forwards; }
 @keyframes coverOpen { from { transform: rotateY(0); } to { transform: rotateY(-180deg); } }
 @keyframes coverClose { from { transform: rotateY(-180deg); } to { transform: rotateY(0); } }
 /* while the cover swings, the left half of the open book is not there yet */
