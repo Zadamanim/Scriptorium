@@ -63,8 +63,6 @@ export async function renderLibrary(onPick, moved) {
     const front = face('board-front', { left: C.post + 'px', top: boardTop + 'px', width: inW + 'px', height: C.board + 'px' });
     if (row.shelf && row.first) front.append(el('span', { class: 'shelf-plaque' }, row.shelf.name));
     kase.append(front);
-    if (row.shelf && row.first && !row.shelf.books.length)
-      kase.append(face('shelf-empty', { left: (C.post + 30) + 'px', top: (boardTop - 64) + 'px', transform: `translateZ(${-C.depth + 4}px)` }));
     let x = C.post + 14;
     for (const { b, h, w, ht } of row.books) {
       const color = SPINE_COLORS[h % SPINE_COLORS.length];

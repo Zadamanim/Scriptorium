@@ -114,11 +114,11 @@ body.busy, body.busy * { cursor: var(--cur-wait) !important; }
 .window .hills { position: absolute; left: -10px; bottom: 0; width: 640px; }
 .window .lattice { position: absolute; inset: 0; width: 620px; height: 720px; opacity: .9; }
 /* moonlight falling through the window, down and to the right into the room */
-.moonbeam { position: absolute; left: 0; top: 0; width: 1720px; height: 1000px; z-index: 6; pointer-events: none; mix-blend-mode: screen; filter: blur(14px); }
+.moonbeam { position: absolute; left: 0; top: 0; width: 3000px; height: 2400px; z-index: 1; pointer-events: none; mix-blend-mode: screen; filter: blur(14px); }
 .moonbeam::before { content: ''; position: absolute; inset: 0;
-  clip-path: polygon(590px 340px, 760px 210px, 1180px 420px, 1720px 700px, 1720px 1000px, 1280px 1000px, 820px 700px);
+  clip-path: polygon(860px 188px, 2860px 1288px, 2550px 2008px, 550px 908px);
   background: repeating-linear-gradient(118deg, rgba(0,0,0,0) 0 40px, rgba(170,190,255,.05) 40px 76px, rgba(0,0,0,0) 76px 130px),
-    linear-gradient(152deg, rgba(175,195,255,.12) 0%, rgba(170,190,255,.24) 38%, rgba(160,180,255,.12) 68%, rgba(150,170,255,0) 92%); }
+    linear-gradient(150deg, rgba(175,195,255,.26) 0px, rgba(165,185,255,.14) 1000px, rgba(150,170,255,0) 1800px); }
 body[data-ambient=full] .moonbeam { animation: beam 9s ease-in-out infinite alternate; }
 @keyframes beam { from { opacity: .85; } to { opacity: 1; } }
 .sill { position: absolute; left: 500px; top: 906px; width: 720px; height: 36px; z-index: 4; border-radius: 3px;
@@ -306,7 +306,7 @@ body[data-ambient=off] .fireglow, body[data-ambient=off] .edge-arrow { animation
 .book { position: absolute; left: 348px; top: 102px; width: 1024px; height: 754px; perspective: 2400px; z-index: 4; transition: transform calc(.35s * var(--flip-k, 1)) ease-in-out; }
 .book .cover { position: absolute; inset: 0; border-radius: 10px; background: url(../assets/textures/leather.png); background-size: 300px;
   box-shadow: 0 30px 50px rgba(0,0,0,.7), inset 0 0 0 3px #2a0b07, inset 0 0 0 7px rgba(201,162,76,.5), inset 0 0 40px rgba(0,0,0,.6); }
-.page-stack { position: absolute; top: 27px; bottom: 27px; width: 12px; background: repeating-linear-gradient(90deg, #d8c39a 0 1px, #b49a6c 1px 2px); border-radius: 2px; }
+.page-stack { position: absolute; top: 24px; bottom: 24px; width: 12px; background: repeating-linear-gradient(90deg, #d8c39a 0 1px, #b49a6c 1px 2px); border-radius: 2px; }
 .page-stack.left { left: 14px; } .page-stack.right { right: 14px; }
 .spread { position: absolute; left: 24px; top: 24px; width: 976px; height: 706px; display: flex; }
 .gutter { position: absolute; left: 50%; top: 24px; width: 90px; height: 706px; transform: translateX(-50%); pointer-events: none; z-index: 3;
@@ -407,6 +407,11 @@ body[data-ambient=off] .fireglow, body[data-ambient=off] .edge-arrow { animation
 .book:hover .corner { opacity: .55; }
 .corner:hover { opacity: 1 !important; }
 .corner.disabled { display: none; }
+/* on the inside of a cover the turning corner takes the cover's colour */
+.book:has(#spread > .endpaper.left) .corner.prev { background: linear-gradient(45deg, #6a2318 0 48%, rgba(0,0,0,.35) 50%, transparent 52%); }
+.book:has(#spread > .endpaper.right) .corner.next { background: linear-gradient(-45deg, #6a2318 0 48%, rgba(0,0,0,.35) 50%, transparent 52%); }
+/* while the cover swings, the corner over it stays unseen (it still answers a click) */
+.book.swinging .corner.prev { opacity: 0 !important; }
 
 /* the leaf that flips during a page turn */
 .turning-leaf { position: absolute; top: 24px; width: 488px; height: 706px; z-index: 8; pointer-events: none; transform-style: preserve-3d;

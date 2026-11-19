@@ -12,8 +12,7 @@ const LIGHT_H = 230;
 // above that spot, so anything lifted (the pounce pot when shaken) leaves its shadow behind on the desk.
 //   base: where it touches the desk · H: its height in px · flat: lies on the desk, so only nudged aside
 const CASTERS = [
-  { name: 'pounce', base: [166, 679], H: 135 },
-  { name: 'spectacles', base: [160, 880], H: 26, flat: true },
+  { name: 'pounce', base: [166, 670], H: 135 },
   { name: 'inkwell', base: [1540, 940], H: 125 },
   { name: 'quill', base: [1540, 940], H: 470 },
   { name: 'crystal', base: [1545, 444], H: 142 },
