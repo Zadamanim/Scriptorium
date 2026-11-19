@@ -1,14 +1,21 @@
-# Builds the Windows installer whenever a version tag (v1.2.3) is pushed,
-# and opens a DRAFT release with it attached. Nothing reaches users until
-# a human reviews the draft and clicks "Publish" (the raven ignores drafts).
+# Opens a DRAFT release, with the Windows installer attached, whenever the version in
+# package.json changes on main (or a v1.2.3 tag is pushed). Nothing reaches users until a
+# human reviews the draft and clicks "Publish": the raven ignores drafts.
 name: Draft release
 
 on:
   push:
+    branches: [main]
+    paths: [package.json, .github/workflows/draft-release.yml]
     tags: ['v*']
+  workflow_dispatch:
 
 permissions:
   contents: write
+
+concurrency:
+  group: draft-release
+  cancel-in-progress: false
 
 jobs:
   build:
@@ -16,33 +23,43 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Which version is this?
+        id: ver
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          V="v$(node -p "require('./package.json').version")"
+          echo "tag=$V" >> "$GITHUB_OUTPUT"
+          if gh release view "$V" >/dev/null 2>&1; then
+            echo "A release (or draft) for $V already exists; nothing to do."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          fi
+
       - uses: actions/setup-node@v4
+        if: steps.ver.outputs.skip != 'true'
         with:
           node-version: 22
           cache: npm
 
       - name: Install NSIS (the installer compiler)
+        if: steps.ver.outputs.skip != 'true'
         run: sudo apt-get update -qq && sudo apt-get install -y -qq nsis
 
       - name: Install dependencies
+        if: steps.ver.outputs.skip != 'true'
         run: npm ci
 
-      - name: Check the tag matches package.json
-        run: |
-          WANT="v$(node -p "require('./package.json').version")"
-          if [ "$WANT" != "$GITHUB_REF_NAME" ]; then
-            echo "Tag $GITHUB_REF_NAME does not match package.json version $WANT"; exit 1
-          fi
-
       - name: Build the installer
+        if: steps.ver.outputs.skip != 'true'
         run: bash build-tools/build-installer.sh
 
       - name: Open a draft release
+        if: steps.ver.outputs.skip != 'true'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          V="$GITHUB_REF_NAME"
+          V="${{ steps.ver.outputs.tag }}"
           NOTES="release-notes/$V.md"
           if [ ! -f "$NOTES" ]; then NOTES=/tmp/notes.md; echo "Scriptorium ${V#v}" > "$NOTES"; fi
           gh release create "$V" "dist/Scriptorium Setup ${V#v}.exe" \
-            --draft --title "Scriptorium ${V#v}" --notes-file "$NOTES"
+            --draft --target "$GITHUB_SHA" --title "Scriptorium ${V#v}" --notes-file "$NOTES"

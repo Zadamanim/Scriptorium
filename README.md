@@ -31,7 +31,7 @@ Scriptorium's raven checks the **latest GitHub Release** of the repository named
 New editions are built by **GitHub Actions** (`.github/workflows/draft-release.yml`):
 
 1. Raise `version` in `package.json` (for example `0.4.0` → `0.4.1`), and write `release-notes/v0.4.1.md`. The raven reads these notes aloud.
-2. Push, then push a tag with the same version: `git tag v0.4.1 && git push origin v0.4.1`.
+2. Push to `main`. When the version in `package.json` changes, the workflow starts by itself (a `v0.4.1` tag works too).
 3. GitHub builds the Windows installer from the published source and opens a **draft** release with it attached.
 4. A human reviews the draft (download and try the installer if you like) and clicks **Publish**. The raven ignores drafts and pre-releases, so nothing reaches anyone before that.
 
