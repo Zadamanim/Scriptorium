@@ -286,6 +286,8 @@ body[data-ambient=off] .fireglow, body[data-ambient=off] .edge-arrow { animation
 #desk-shadows { position: absolute; inset: 0; z-index: 3; pointer-events: none; }
 .cast { position: absolute; inset: 0; transform: matrix(1, 0, calc(var(--c) * var(--flick)), calc(var(--d) * var(--flick)), 0, 0);
   filter: blur(var(--blur)); opacity: var(--op); }
+.cast.cast-spectacles { transform: matrix(calc(1 + var(--flick) * var(--m1)), calc(var(--flick) * var(--m2)), calc(var(--flick) * var(--m3)), calc(1 + var(--flick) * var(--m4)), calc(var(--flick) * var(--m5)), calc(var(--flick) * var(--m6))); }
+#leg-shadows { position: absolute; inset: 0; z-index: 1; pointer-events: none; }
 .cast.flat { transform: translate(calc(var(--sx) * var(--flick) * 1px), calc(var(--sy) * var(--flick) * 1px)); }
 .cast-shape { position: absolute; background: #050200; -webkit-mask: var(--src) 0 0 / 100% 100% no-repeat; mask: var(--src) 0 0 / 100% 100% no-repeat; }
 #view-desk.dark .cast { opacity: 0; transition: opacity .6s; }
@@ -306,7 +308,7 @@ body[data-ambient=off] .fireglow, body[data-ambient=off] .edge-arrow { animation
 .book { position: absolute; left: 348px; top: 102px; width: 1024px; height: 754px; perspective: 2400px; z-index: 4; transition: transform calc(.35s * var(--flip-k, 1)) ease-in-out; }
 .book .cover { position: absolute; inset: 0; border-radius: 10px; background: url(../assets/textures/leather.png); background-size: 300px;
   box-shadow: 0 30px 50px rgba(0,0,0,.7), inset 0 0 0 3px #2a0b07, inset 0 0 0 7px rgba(201,162,76,.5), inset 0 0 40px rgba(0,0,0,.6); }
-.page-stack { position: absolute; top: 24px; bottom: 24px; width: 12px; background: repeating-linear-gradient(90deg, #d8c39a 0 1px, #b49a6c 1px 2px); border-radius: 2px; }
+.page-stack { position: absolute; top: 24px; bottom: 24px; width: 20px; background: repeating-linear-gradient(90deg, #d8c39a 0 1px, #b49a6c 1px 2px); border-radius: 2px; }
 .page-stack.left { left: 14px; } .page-stack.right { right: 14px; }
 .spread { position: absolute; left: 24px; top: 24px; width: 976px; height: 706px; display: flex; }
 .gutter { position: absolute; left: 50%; top: 24px; width: 90px; height: 706px; transform: translateX(-50%); pointer-events: none; z-index: 3;
@@ -376,6 +378,7 @@ body[data-ambient=off] .fireglow, body[data-ambient=off] .edge-arrow { animation
 .toc .n { font-style: italic; color: #6b4a22; }
 .toc-marks { margin-top: 18px !important; font-size: 26px !important; }
 #ribbons { position: absolute; left: 0; top: 722px; width: 1024px; height: 1px; z-index: 7; pointer-events: none; }
+#ribbons.closed { top: 740px; z-index: 5; }
 .ribbon { position: absolute; top: 0; width: 16px; pointer-events: auto; transform-origin: top center;
   background: linear-gradient(90deg, rgba(0,0,0,.28), rgba(255,255,255,.22) 40%, rgba(0,0,0,.22)), var(--rc);
   clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 86%, 0 100%); filter: drop-shadow(2px 3px 2px rgba(0,0,0,.5)); }
@@ -412,6 +415,15 @@ body[data-ambient=off] .fireglow, body[data-ambient=off] .edge-arrow { animation
 .book:has(#spread > .endpaper.right) .corner.next { background: linear-gradient(-45deg, #6a2318 0 48%, rgba(0,0,0,.35) 50%, transparent 52%); }
 /* while the cover swings, the corner over it stays unseen (it still answers a click) */
 .book.swinging .corner.prev { opacity: 0 !important; }
+/* nothing lies under the inside of a cover, so no page edges show beside it */
+.book:has(#spread > .endpaper.left) .page-stack.left, .book:has(#spread > .endpaper.right) .page-stack.right { display: none; }
+/* the candle's own dish shades the wood around its foot */
+.cast-ring { position: absolute; left: 64px; top: 424px; width: 300px; height: 74px; transform: scale(var(--flick)); transform-origin: 50% 50%;
+  background: radial-gradient(closest-side, rgba(4,2,0,.9) 40%, rgba(4,2,0,.6) 62%, rgba(4,2,0,.22) 82%, rgba(4,2,0,0) 100%); filter: blur(2px); opacity: calc(1.8 - var(--flick) * .8); }
+#view-desk.dark .cast-ring, #view-desk.dark .cast-leg { opacity: 0; transition: opacity .6s; }
+/* the writing stand's legs throw long shadows away from the flame, off past the edge of the desk */
+.cast-leg { position: absolute; height: 60px; transform-origin: 0 50%; transform: rotate(var(--a)) scaleX(var(--flick));
+  background: linear-gradient(90deg, rgba(6,3,0,.85), rgba(6,3,0,.6) 40%, rgba(6,3,0,.2) 100%); filter: blur(4px); border-radius: 30px 0 0 30px; }
 
 /* the leaf that flips during a page turn */
 .turning-leaf { position: absolute; top: 24px; width: 488px; height: 706px; z-index: 8; pointer-events: none; transform-style: preserve-3d;

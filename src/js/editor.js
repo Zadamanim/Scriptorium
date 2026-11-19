@@ -76,6 +76,7 @@ function renderRibbons() {
   let box = document.getElementById('ribbons');
   if (!box) { box = el('div', { id: 'ribbons' }); book.append(box); }
   box.innerHTML = '';
+  box.classList.toggle('closed', ed.spread < 0);
   if (ed.locked) return;
   const items = ribbonItems();
   const closed = ed.spread < 0;
@@ -90,7 +91,8 @@ function renderRibbons() {
     if (t.mark) rb.addEventListener('contextmenu', (e) => { e.preventDefault(); if (!ed.readOnly) ed.onMarkMenu(t.mark); });
     box.append(rb);
   });
-  if (closed) { put(items.sort((a, b) => a.index - b.index), 556, 28); return; }
+  // a shut book: the ribbons slip out from under the bottom edge of the cover, between the pages
+  if (closed) { put(items.sort((a, b) => a.index - b.index), 600, 28); return; }
   put(items.filter(t => t.index < l).sort((a, b) => b.index - a.index), 470, -28);
   put(items.filter(t => t.index === l || t.index === r), 498, 16);
   put(items.filter(t => t.index > r).sort((a, b) => a.index - b.index), 548, 28);
