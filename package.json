@@ -1,0 +1,79 @@
+{
+  "name": "scriptorium",
+  "version": "0.3.1",
+  "description": "A candle-lit desk for writing books.",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --win nsis",
+    "dist:linux-host": "bash build-tools/build-installer.sh"
+  },
+  "author": "Zadamanim",
+  "license": "GPL-3.0-or-later",
+  "dependencies": {
+    "jszip": "^3.10.2"
+  },
+  "devDependencies": {
+    "@fontsource/almendra": "^5.3.0",
+    "@fontsource/cinzel-decorative": "^5.3.0",
+    "@fontsource/eb-garamond": "^5.3.0",
+    "@fontsource/im-fell-english": "^5.3.0",
+    "@fontsource/medievalsharp": "^5.3.0",
+    "@fontsource/pirata-one": "^5.3.0",
+    "@fontsource/uncial-antiqua": "^5.3.0",
+    "@fontsource/unifrakturmaguntia": "^5.3.0",
+    "electron": "^45.3.4",
+    "electron-builder": "^26.18.0",
+    "resedit": "^3.1.1"
+  },
+  "productName": "Scriptorium",
+  "build": {
+    "appId": "app.scriptorium.desk",
+    "productName": "Scriptorium",
+    "files": [
+      "THIRD_PARTY_NOTICES.md",
+      "LICENSE",
+      "assets/**/*",
+      "fontinfo.js",
+      "main.js",
+      "package.json",
+      "preload.js",
+      "src/**/*",
+      "updater.js",
+      "!assets/_preview.html"
+    ],
+    "fileAssociations": [
+      {
+        "ext": "tome",
+        "name": "Scriptorium Tome",
+        "description": "A book written in Scriptorium",
+        "icon": "assets/icon.ico",
+        "role": "Editor"
+      }
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "assets/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "perMachine": false,
+      "createDesktopShortcut": true,
+      "shortcutName": "Scriptorium",
+      "installerIcon": "assets/icon.ico",
+      "uninstallerIcon": "assets/icon.ico"
+    },
+    "directories": {
+      "output": "dist"
+    }
+  },
+  "scriptorium": {
+    "updateRepo": "Zadamanim/Scriptorium"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Zadamanim/Scriptorium.git"
+  },
+  "homepage": "https://github.com/Zadamanim/Scriptorium"
+}

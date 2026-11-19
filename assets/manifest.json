@@ -1,0 +1,259 @@
+{
+ "candle": {
+  "size": [
+   160,
+   320
+  ],
+  "fps": 7,
+  "idle": [
+   "props/candle_idle1.svg",
+   "props/candle_idle2.svg",
+   "props/candle_idle3.svg"
+  ],
+  "hover": [
+   "props/candle_hover1.svg",
+   "props/candle_hover2.svg",
+   "props/candle_hover3.svg"
+  ],
+  "snuff": [
+   "props/candle_snuff1.svg",
+   "props/candle_snuff2.svg",
+   "props/candle_snuff3.svg"
+  ],
+  "out": [
+   "props/candle_out.svg"
+  ]
+ },
+ "inkwell": {
+  "size": [
+   200,
+   200
+  ],
+  "fps": 8,
+  "idle": [
+   "props/inkwell_idle.svg"
+  ],
+  "hover": [
+   "props/inkwell_hover1.svg",
+   "props/inkwell_hover2.svg",
+   "props/inkwell_hover3.svg"
+  ],
+  "click": [
+   "props/inkwell_click1.svg",
+   "props/inkwell_click2.svg"
+  ],
+  "inkMask": "props/inkwell_inkmask.svg"
+ },
+ "quill": {
+  "size": [
+   120,
+   370
+  ],
+  "fps": 8,
+  "idle": [
+   "props/quill_idle.svg"
+  ],
+  "hover": [
+   "props/quill_hover1.svg",
+   "props/quill_hover2.svg",
+   "props/quill_hover3.svg"
+  ],
+  "click": [
+   "props/quill_click1.svg",
+   "props/quill_click2.svg"
+  ]
+ },
+ "crystal": {
+  "size": [
+   200,
+   220
+  ],
+  "fps": 4,
+  "idle": [
+   "props/crystal_idle1.svg",
+   "props/crystal_idle2.svg",
+   "props/crystal_idle3.svg"
+  ],
+  "hover": [
+   "props/crystal_hover1.svg",
+   "props/crystal_hover2.svg",
+   "props/crystal_hover3.svg"
+  ]
+ },
+ "spectacles": {
+  "size": [
+   220,
+   160
+  ],
+  "fps": 6,
+  "idle": [
+   "props/spectacles_idle.svg"
+  ],
+  "hover": [
+   "props/spectacles_hover1.svg",
+   "props/spectacles_hover2.svg",
+   "props/spectacles_hover3.svg"
+  ]
+ },
+ "seal": {
+  "size": [
+   140,
+   140
+  ],
+  "fps": 6,
+  "idle": [
+   "props/seal_idle.svg"
+  ],
+  "hover": [
+   "props/seal_hover1.svg",
+   "props/seal_hover2.svg",
+   "props/seal_hover3.svg"
+  ],
+  "click": [
+   "props/seal_click1.svg",
+   "props/seal_click2.svg"
+  ]
+ },
+ "_cursors": {
+  "default": {
+   "file": "cursors/arrow.svg",
+   "hot": [
+    3,
+    2
+   ]
+  },
+  "pointer": {
+   "file": "cursors/hand.svg",
+   "hot": [
+    13,
+    2
+   ]
+  },
+  "text": {
+   "file": "cursors/nib.svg",
+   "hot": [
+    16,
+    31
+   ]
+  },
+  "wait": {
+   "file": "cursors/hourglass.svg",
+   "hot": [
+    16,
+    16
+   ]
+  },
+  "grab": {
+   "file": "cursors/grab.svg",
+   "hot": [
+    16,
+    16
+   ]
+  },
+  "ink": {
+   "file": "cursors/inkdrop.svg",
+   "hot": [
+    16,
+    30
+   ]
+  },
+  "look-left": {
+   "file": "cursors/look_left.svg",
+   "hot": [
+    4,
+    16
+   ]
+  },
+  "look-right": {
+   "file": "cursors/look_right.svg",
+   "hot": [
+    28,
+    16
+   ]
+  },
+  "look-up": {
+   "file": "cursors/look_up.svg",
+   "hot": [
+    16,
+    4
+   ]
+  },
+  "look-down": {
+   "file": "cursors/look_down.svg",
+   "hot": [
+    16,
+    28
+   ]
+  }
+ },
+ "pounce": {
+  "size": [
+   120,
+   172
+  ],
+  "fps": 7,
+  "idle": [
+   "props/pounce_idle.svg"
+  ],
+  "hover": [
+   "props/pounce_hover1.svg",
+   "props/pounce_hover2.svg",
+   "props/pounce_hover3.svg"
+  ],
+  "click": [
+   "props/pounce_click1.svg",
+   "props/pounce_click2.svg",
+   "props/pounce_click3.svg"
+  ]
+ },
+ "door": {
+  "size": [
+   440,
+   700
+  ],
+  "fps": 6,
+  "idle": [
+   "props/door_idle.svg"
+  ],
+  "hover": [
+   "props/door_hover1.svg",
+   "props/door_hover2.svg",
+   "props/door_hover3.svg"
+  ],
+  "open": [
+   "props/door_open1.svg",
+   "props/door_open2.svg",
+   "props/door_open3.svg"
+  ]
+ },
+ "torch": {
+  "size": [
+   120,
+   240
+  ],
+  "fps": 8,
+  "idle": [
+   "props/torch1.svg",
+   "props/torch2.svg",
+   "props/torch3.svg"
+  ]
+ },
+ "raven": {
+  "size": [
+   170,
+   186
+  ],
+  "fps": 5,
+  "idle": [
+   "props/raven_idle1.svg",
+   "props/raven_idle2.svg",
+   "props/raven_idle3.svg",
+   "props/raven_idle4.svg"
+  ],
+  "hover": [
+   "props/raven_hover1.svg",
+   "props/raven_hover2.svg",
+   "props/raven_hover3.svg"
+  ]
+ }
+}

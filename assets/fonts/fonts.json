@@ -1,0 +1,210 @@
+{
+ "families": [
+  {
+   "family": "IM Fell English",
+   "license": "SIL Open Font License 1.1",
+   "credit": "Igino Marini",
+   "category": "body"
+  },
+  {
+   "family": "EB Garamond",
+   "license": "SIL Open Font License 1.1",
+   "credit": "Georg Duffner & Octavio Pardo",
+   "category": "body"
+  },
+  {
+   "family": "Almendra",
+   "license": "SIL Open Font License 1.1",
+   "credit": "Ana Sanfelippo",
+   "category": "body"
+  },
+  {
+   "family": "UnifrakturMaguntia",
+   "license": "SIL Open Font License 1.1",
+   "credit": "j. mach wust, Gerrit Ansmann, Georg Duffner, Peter Wiegel",
+   "category": "display"
+  },
+  {
+   "family": "Cinzel Decorative",
+   "license": "SIL Open Font License 1.1",
+   "credit": "Natanael Gama",
+   "category": "display"
+  },
+  {
+   "family": "MedievalSharp",
+   "license": "SIL Open Font License 1.1",
+   "credit": "Wojciech Kalinowski",
+   "category": "display"
+  },
+  {
+   "family": "Uncial Antiqua",
+   "license": "SIL Open Font License 1.1",
+   "credit": "Astigmatic",
+   "category": "display"
+  },
+  {
+   "family": "Pirata One",
+   "license": "SIL Open Font License 1.1",
+   "credit": "Rodrigo Fuenzalida & Nicolas Massi",
+   "category": "display"
+  },
+  {
+   "family": "Berry Rotunda",
+   "license": "Public Domain",
+   "credit": "Typo-Graf (2016)",
+   "category": "body"
+  },
+  {
+   "family": "Alagard",
+   "license": "CC BY 3.0 (attribution required)",
+   "credit": "Hewett Tsoi (Pix3M)",
+   "category": "display"
+  },
+  {
+   "family": "GothicPixels",
+   "license": "Listed 100% Free (DaFont)",
+   "credit": "LingDong Huang",
+   "category": "display"
+  },
+  {
+   "family": "Gossamer Noon Sans",
+   "license": "SIL Open Font License 1.1 (Mixfont)",
+   "credit": "Mixfont",
+   "category": "body"
+  },
+  {
+   "family": "Venice Classic",
+   "license": "Free; redistribute with notice",
+   "credit": "soixantedeux (2006)",
+   "category": "body"
+  }
+ ],
+ "faces": [
+  {
+   "family": "IM Fell English",
+   "file": "im-fell-english-latin-400-normal.woff2",
+   "weight": 400,
+   "style": "normal"
+  },
+  {
+   "family": "IM Fell English",
+   "file": "im-fell-english-latin-400-italic.woff2",
+   "weight": 400,
+   "style": "italic"
+  },
+  {
+   "family": "EB Garamond",
+   "file": "eb-garamond-latin-400-normal.woff2",
+   "weight": 400,
+   "style": "normal"
+  },
+  {
+   "family": "EB Garamond",
+   "file": "eb-garamond-latin-400-italic.woff2",
+   "weight": 400,
+   "style": "italic"
+  },
+  {
+   "family": "EB Garamond",
+   "file": "eb-garamond-latin-700-normal.woff2",
+   "weight": 700,
+   "style": "normal"
+  },
+  {
+   "family": "EB Garamond",
+   "file": "eb-garamond-latin-700-italic.woff2",
+   "weight": 700,
+   "style": "italic"
+  },
+  {
+   "family": "Almendra",
+   "file": "almendra-latin-400-normal.woff2",
+   "weight": 400,
+   "style": "normal"
+  },
+  {
+   "family": "Almendra",
+   "file": "almendra-latin-400-italic.woff2",
+   "weight": 400,
+   "style": "italic"
+  },
+  {
+   "family": "Almendra",
+   "file": "almendra-latin-700-normal.woff2",
+   "weight": 700,
+   "style": "normal"
+  },
+  {
+   "family": "Almendra",
+   "file": "almendra-latin-700-italic.woff2",
+   "weight": 700,
+   "style": "italic"
+  },
+  {
+   "family": "UnifrakturMaguntia",
+   "file": "unifrakturmaguntia-latin-400-normal.woff2",
+   "weight": 400,
+   "style": "normal"
+  },
+  {
+   "family": "Cinzel Decorative",
+   "file": "cinzel-decorative-latin-400-normal.woff2",
+   "weight": 400,
+   "style": "normal"
+  },
+  {
+   "family": "Cinzel Decorative",
+   "file": "cinzel-decorative-latin-700-normal.woff2",
+   "weight": 700,
+   "style": "normal"
+  },
+  {
+   "family": "MedievalSharp",
+   "file": "medievalsharp-latin-400-normal.woff2",
+   "weight": 400,
+   "style": "normal"
+  },
+  {
+   "family": "Uncial Antiqua",
+   "file": "uncial-antiqua-latin-400-normal.woff2",
+   "weight": 400,
+   "style": "normal"
+  },
+  {
+   "family": "Pirata One",
+   "file": "pirata-one-latin-400-normal.woff2",
+   "weight": 400,
+   "style": "normal"
+  },
+  {
+   "family": "Berry Rotunda",
+   "file": "BerryRotunda.ttf",
+   "weight": 400,
+   "style": "normal"
+  },
+  {
+   "family": "Alagard",
+   "file": "alagard.ttf",
+   "weight": 400,
+   "style": "normal"
+  },
+  {
+   "family": "GothicPixels",
+   "file": "GothicPixels.ttf",
+   "weight": 400,
+   "style": "normal"
+  },
+  {
+   "family": "Gossamer Noon Sans",
+   "file": "GossamerNoonSans.ttf",
+   "weight": 400,
+   "style": "normal"
+  },
+  {
+   "family": "Venice Classic",
+   "file": "VeniceClassic.ttf",
+   "weight": 400,
+   "style": "normal"
+  }
+ ]
+}
