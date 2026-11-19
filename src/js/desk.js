@@ -40,6 +40,12 @@ export function initDesk(callbacks) {
   document.getElementById('turn-next').addEventListener('click', () => E.turn(1));
   E.ed.onSelection = () => { if (quillBox) syncQuill(); };
   E.ed.onFlow = (i) => openFlow(i);
+  E.ed.onMarkMenu = async (m) => {
+    const name = el('input', { class: 'field', value: m.name });
+    const r = await dialog({ title: 'A Mark', body: el('div', {}, el('p', {}, 'Its name:'), name),
+      buttons: [{ label: 'Remove it', value: 'remove', kind: 'danger' }, { label: 'Nay', value: null }, { label: 'Rename', kind: 'primary', value: () => name.value.trim() || STAY }] });
+    if (r === 'remove') E.removeMark(m); else if (typeof r === 'string') E.renameMark(m, r);
+  };
   // keep the writing cursor in the page when clicking menu buttons
   document.getElementById('ui-layer').addEventListener('mousedown', (e) => {
     if (e.target.closest('.qm-btn, .qm-opt, .qm-item, .qm-back, .ink, .font-list .f')) e.preventDefault();
@@ -135,7 +141,8 @@ const VIEWS = {
       opt('qm-addleaf', '✚', 'Add a blank leaf after this', () => E.addLeafAfterCurrent()),
       opt('qm-tear', '✄', 'Tear out this leaf', () => E.tearOutCurrent()),
       opt('qm-unchapter', '⊘', 'Unmark this chapter', () => E.removeChapterMarkCurrent(), 'words stay'),
-      opt('qm-flow', '⤵', 'Let the words flow…', () => openFlow(), 'spread text so none hides'));
+      opt('qm-flow', '⤵', 'Let the words flow…', () => openFlow(), 'spread text so none hides'),
+      opt('qm-mark', '⟡', 'Place a mark on this page', () => E.addMarkHere(), 'a gold cord to find it again'));
   },
   caps(b) {
     const capThis = el('input', { type: 'checkbox', id: 'qm-dropcap-cb' });
@@ -158,7 +165,7 @@ const VIEWS = {
 const VIEW_OF = {
   'qm-fontlist': 'font', 'qm-import': 'font', 'qm-sizes': 'size', 'qm-align': 'align', 'qm-spacing': 'spacing',
   'qm-ul': 'lists', 'qm-ol': 'lists', 'qm-tab': 'lists', 'qm-indent': 'lists', 'qm-outdent': 'lists', 'qm-firstindent': 'lists',
-  'qm-pagebreak': 'pages', 'qm-flow': 'pages', 'qm-chapter': 'pages', 'qm-addleaf': 'pages', 'qm-tear': 'pages', 'qm-unchapter': 'pages',
+  'qm-pagebreak': 'pages', 'qm-flow': 'pages', 'qm-mark': 'pages', 'qm-chapter': 'pages', 'qm-addleaf': 'pages', 'qm-tear': 'pages', 'qm-unchapter': 'pages',
   'qm-dropcap': 'caps', 'qm-dropcap-all': 'caps', 'qm-default': 'book', 'qm-bold': 'main', 'qm-italic': 'main', 'qm-underline': 'main', 'qm-manner': 'main',
 };
 
@@ -275,6 +282,8 @@ function actions() {
   return [
     { label: 'Page break', keys: 'page break new page split next page ctrl enter', where: W_QUILL + ' › Pages', ctl: 'qm-pagebreak', run: () => E.pageBreak() },
     { label: 'Let the words flow onto following pages (redistribute)', keys: 'redistribute reflow overflow overfloweth flow spread text pages fit automatically extend distribute too much text', where: W_QUILL + ' › Pages · or click “overfloweth”', ctl: 'qm-flow', run: () => openFlow() },
+    { label: 'Place a mark (bookmark) on this page', keys: 'mark bookmark marker ribbon cord tassel remember place save spot', where: W_QUILL + ' › Pages · the gold cords below the book', ctl: 'qm-mark', run: () => E.addMarkHere() },
+    { label: 'Chapter ribbons (jump to a chapter)', keys: 'ribbon ribbons chapter jump skip go to', where: 'the silk ribbons hanging below the book', illum: '#ribbons', run: null },
     { label: 'Begin a new chapter', keys: 'chapter new chapter heading section part', where: W_QUILL + ' › Pages', ctl: 'qm-chapter', run: () => E.newChapterHere() },
     { label: 'Add a blank page', keys: 'add page blank leaf new page insert page more pages', where: W_QUILL + ' › Pages', ctl: 'qm-addleaf', run: () => E.addLeafAfterCurrent() },
     { label: 'Tear out (delete) this page', keys: 'delete page remove page tear erase leaf', where: W_QUILL + ' › Pages', ctl: 'qm-tear', run: () => E.tearOutCurrent() },

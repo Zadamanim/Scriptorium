@@ -35,6 +35,8 @@ export function normalizeBook(b) {
     }
   }
   book.title = String(book.title || ''); book.author = String(book.author || '');
+  book.marks = (Array.isArray(b.marks) ? b.marks : []).filter(m => m && m.pageId)
+    .map(m => ({ id: String(m.id || uid()), pageId: String(m.pageId), name: String(m.name || 'A mark').slice(0, 120) }));
   return book;
 }
 

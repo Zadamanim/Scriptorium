@@ -24,6 +24,9 @@ let candle, door;
   initTooltips();
   fitStage(); window.addEventListener('resize', fitStage);
   makeStars();
+  // two stone columns per wall, so turning round the room shows where each corner is
+  document.querySelectorAll('.corners').forEach(c => c.append(
+    el('div', { class: 'corner-col l' }), el('div', { class: 'corner-col r' })));
 
   candle = new Prop(document.getElementById('prop-candle'), 'candle', { onClick: () => leaveDesk() });
   props.candle = candle;

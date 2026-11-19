@@ -26,24 +26,22 @@ npm run dist         # builds dist/Scriptorium Setup <version>.exe (run on Windo
 
 ## Publishing a new edition (the raven updater)
 
-Scriptorium checks the **latest GitHub Release** of the repository named in `package.json → scriptorium.updateRepo`. One-time setup:
+Scriptorium's raven checks the **latest GitHub Release** of the repository named in `package.json → scriptorium.updateRepo` (`Zadamanim/Scriptorium`).
 
-1. Create a GitHub repository (it can be empty or hold this source), for example `yourname/scriptorium`.
-2. Set `"scriptorium": { "updateRepo": "yourname/scriptorium" }` in `package.json`.
+New editions are built by **GitHub Actions** (`.github/workflows/draft-release.yml`):
 
-For each new edition:
+1. Raise `version` in `package.json` (for example `0.4.0` → `0.4.1`), and write `release-notes/v0.4.1.md`. The raven reads these notes aloud.
+2. Push, then push a tag with the same version: `git tag v0.4.1 && git push origin v0.4.1`.
+3. GitHub builds the Windows installer from the published source and opens a **draft** release with it attached.
+4. A human reviews the draft (download and try the installer if you like) and clicks **Publish**. The raven ignores drafts and pre-releases, so nothing reaches anyone before that.
 
-1. Raise `version` in `package.json` (for example `0.3.0` → `0.4.0`).
-2. Build the installer (`npm run dist` on Windows, or `npm run dist:linux-host`).
-3. On GitHub: **Releases → Draft a new release**. Use the tag `v0.4.0`, write the notes (the raven reads them aloud), attach `Scriptorium Setup 0.4.0.exe`, and publish.
-
-Within a few hours of starting (or straight away via Spectacles → *Look for a new edition*), users see a raven on the window sill. Accepting it:
+When a user accepts, the raven:
 
 1. downloads the installer and checks it against GitHub's SHA-256, refusing anything damaged;
 2. zips the whole Library into `Documents/Scriptorium/Library Backups/`, keeping the last 5;
-3. runs the installer silently. The installer closes Scriptorium, replaces the program and starts it again.
+3. runs the installer silently, retrying briefly if Windows still holds the file. The installer closes Scriptorium, replaces the program and starts it again.
 
-The installer never touches the Library or the settings. It also quietly removes the old 0.1.0 install, which was registered under a different name. Drafts and pre-releases are ignored.
+The installer never touches the Library or the settings.
 
 ## Where things live
 

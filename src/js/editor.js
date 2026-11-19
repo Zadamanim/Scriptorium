@@ -9,7 +9,7 @@ export const ed = {
   savedRange: null, savedEditable: null, pendingSize: null,
   sealed: false, locked: false, hint: '', readOnly: false,
   flip: 1, // page-turn speed: 0 instant, 0.55 brisk, 1 usual, 1.7 leisurely
-  onDirty: () => {}, onTitle: () => {}, onSelection: () => {}, onClasp: () => {}, onUnlock: () => {}, onFlow: () => {},
+  onDirty: () => {}, onTitle: () => {}, onSelection: () => {}, onClasp: () => {}, onUnlock: () => {}, onFlow: () => {}, onMarkMenu: () => {},
 };
 export function initBookChrome() {
   document.getElementById('front-cover').addEventListener('click', () => { if (ed.locked) ed.onUnlock(); else goToSpread(0); });
@@ -51,6 +51,7 @@ export function render() {
   book.classList.toggle('sealed', ed.sealed || ed.locked);
   book.classList.toggle('readonly', ed.readOnly);
   renderCover();
+  renderRibbons();
   if (ed.spread < 0) return;
   const [l, r] = indicesOf(ed.spread);
   sp.append(renderPage(l, 'left'), renderPage(r, 'right'));
@@ -59,6 +60,54 @@ export function render() {
   document.getElementById('turn-next').classList.toggle('disabled', ed.spread >= maxSpread());
   sp.querySelectorAll('.page').forEach(pg => { const t = pg.querySelector('.text'); if (t) checkOverflow(pg, t); });
 }
+
+// ------------------------------------------------------------------ ribbons: one silk ribbon per chapter, a cord for each mark
+// Like a real book, a ribbon for an earlier page hangs out on the left, a later one on the right,
+// and one marking the open pages hangs from the middle.
+const RIBBON_COLORS = ['#8b1a12', '#1f3a8a', '#2f6b4f', '#5b1f4f', '#b8902e', '#6e3a1e', '#20484a', '#7e1a22'];
+function ribbonItems() {
+  const P = pages(), items = [];
+  chapters(ed.book).forEach((c, k) => items.push({ kind: 'chapter', index: c.index, name: c.title, color: RIBBON_COLORS[k % RIBBON_COLORS.length] }));
+  for (const m of ed.book.marks || []) { const i = P.findIndex(p => p.id === m.pageId); if (i >= 0) items.push({ kind: 'mark', index: i, name: m.name, mark: m }); }
+  return items;
+}
+function renderRibbons() {
+  const book = document.getElementById('book');
+  let box = document.getElementById('ribbons');
+  if (!box) { box = el('div', { id: 'ribbons' }); book.append(box); }
+  box.innerHTML = '';
+  if (ed.locked) return;
+  const items = ribbonItems();
+  const closed = ed.spread < 0;
+  const [l, r] = closed ? [-1, -1] : indicesOf(ed.spread);
+  const put = (list, x0, step) => list.forEach((t, k) => {
+    const x = x0 + k * step;
+    if (x < 20 || x > 1000) return;
+    const len = 70 + ((t.index * 37 + k * 11) % 26);
+    const tip = `${t.kind === 'chapter' ? 'Chapter' : 'Mark'}: ${t.name} — page ${folio(t.index) || '—'}` + (t.kind === 'mark' && !ed.readOnly ? ' (right-click to rename or remove)' : '');
+    const rb = el('div', { class: `ribbon ${t.kind} clickable`, 'data-tip': tip, style: `left:${x}px;height:${len}px;--rc:${t.color || '#b8902e'}` });
+    rb.addEventListener('click', () => { if (ed.locked) return; goToPage(t.index).then(() => { if (!ed.readOnly) focusPageText(t.index, 'start'); }); });
+    if (t.mark) rb.addEventListener('contextmenu', (e) => { e.preventDefault(); if (!ed.readOnly) ed.onMarkMenu(t.mark); });
+    box.append(rb);
+  });
+  if (closed) { put(items.sort((a, b) => a.index - b.index), 556, 28); return; }
+  put(items.filter(t => t.index < l).sort((a, b) => b.index - a.index), 470, -28);
+  put(items.filter(t => t.index === l || t.index === r), 498, 16);
+  put(items.filter(t => t.index > r).sort((a, b) => a.index - b.index), 548, 28);
+}
+export function addMarkHere() {
+  if (ed.readOnly) return;
+  const i = currentIndex();
+  const p = pages()[i];
+  if (!p || p.kind !== 'text') { toast('Marks go on pages of writing.'); return; }
+  return promptBox('Place a Mark', `What shall the mark on page ${folio(i)} be called?`, `Page ${folio(i)}`, 'Place it').then((name) => {
+    if (!name) return;
+    (ed.book.marks ||= []).push({ id: uid(), pageId: p.id, name });
+    markDirty(); render(); refreshContents();
+  });
+}
+export function renameMark(m, name) { m.name = name; markDirty(); render(); refreshContents(); }
+export function removeMark(m) { ed.book.marks = (ed.book.marks || []).filter(x => x !== m); markDirty(); render(); refreshContents(); }
 
 function renderCover() {
   const fc = document.getElementById('front-cover');
@@ -126,6 +175,14 @@ function renderContents() {
       el('span', { class: 't' }, c.title), el('span', { class: 'dots' }), el('span', { class: 'n' }, folio(c.index))));
   }
   wrap.append(ul);
+  const marks = ribbonItems().filter(t => t.kind === 'mark').sort((a, b) => a.index - b.index);
+  if (marks.length) {
+    wrap.append(el('h2', { class: 'toc-marks' }, 'Marks'));
+    const ml = el('ul', { class: 'toc' });
+    for (const m of marks) ml.append(el('li', { class: 'clickable', 'data-tip': 'Turn to this mark', onclick: () => { goToPage(m.index).then(() => { if (!ed.readOnly) focusPageText(m.index, 'start'); }); } },
+      el('span', { class: 't' }, '⟡ ' + m.name), el('span', { class: 'dots' }), el('span', { class: 'n' }, folio(m.index))));
+    wrap.append(ml);
+  }
   return wrap;
 }
 
@@ -588,6 +645,8 @@ export function chapterBounds(i) {
 export function flowPages(from, to, opts) {
   const snap = JSON.stringify(pages());
   const r = redistribute(ed.book, from, to, opts);
+  const ids = new Set(pages().map(p => p.id));
+  ed.book.marks = (ed.book.marks || []).filter(m => ids.has(m.pageId));
   ed.savedRange = null; ed.savedEditable = null;
   ed.spread = Math.min(ed.spread, maxSpread());
   render(); refreshContents(); markDirty();
