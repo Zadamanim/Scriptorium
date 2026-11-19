@@ -121,6 +121,14 @@ body.busy, body.busy * { cursor: var(--cur-wait) !important; }
 #prop-raven.show { display: block; animation: alight .7s steps(4) 1; }
 @keyframes alight { from { transform: translate(120px, -160px) scale(.6); opacity: 0; } to { transform: none; opacity: 1; } }
 
+/* ------------------------------------------------------------- background animations (Spectacles) */
+body[data-ambient=reduced] .window .stars span, body[data-ambient=reduced] .edge-arrow { animation: none; }
+body[data-ambient=reduced] .window .cloud { animation-duration: 260s; }
+body[data-ambient=reduced] .crystal-glow { animation-duration: 12s; }
+body[data-ambient=reduced] .fireglow { animation-duration: 4.5s; }
+body[data-ambient=off] .window .stars span, body[data-ambient=off] .window .cloud, body[data-ambient=off] .crystal-glow,
+body[data-ambient=off] .fireglow, body[data-ambient=off] .edge-arrow { animation: none !important; }
+
 /* ------------------------------------------------------------- corner columns
    Each view is one wall, from corner to corner. A column stands on each corner, centred on the
    screen's edge, so when you turn, the halves of the two walls meet as one whole column. */
@@ -253,10 +261,21 @@ body.busy, body.busy * { cursor: var(--cur-wait) !important; }
 .lectern-shadow { position: absolute; left: 200px; top: 850px; width: 1320px; height: 190px; z-index: 1; pointer-events: none; border-radius: 50%;
   background: radial-gradient(ellipse closest-side, rgba(0,0,0,.72), rgba(0,0,0,.45) 55%, rgba(0,0,0,0)); }
 .lectern-leg.l { left: 400px; } .lectern-leg.r { left: 1250px; }
-#desk-light { z-index: 15;
-  background:
-    radial-gradient(circle at calc(3000px + 214px) calc(2000px + 296px), rgba(255,190,110,.26) 0, rgba(255,170,90,.10) 380px, rgba(255,160,80,0) 820px),
-    radial-gradient(ellipse 1250px 860px at calc(3000px + 860px) calc(2000px + 520px), rgba(0,0,0,0) 52%, rgba(6,3,0,.62) 100%); }
+@property --flick { syntax: '<number>'; inherits: true; initial-value: 1; }
+@property --glow { syntax: '<number>'; inherits: true; initial-value: .85; }
+@property --gloom { syntax: '<number>'; inherits: true; initial-value: .95; }
+:root { transition: --flick .13s linear, --glow .13s linear, --gloom .13s linear; }
+#desk-glow { z-index: 15; opacity: var(--glow);
+  background: radial-gradient(circle at calc(3000px + 214px) calc(2000px + 296px), rgba(255,190,110,.28) 0, rgba(255,170,90,.11) 380px, rgba(255,160,80,0) 820px); }
+#desk-light { z-index: 15; opacity: var(--gloom);
+  background: radial-gradient(ellipse 1250px 860px at calc(3000px + 860px) calc(2000px + 520px), rgba(0,0,0,0) 52%, rgba(6,3,0,.64) 100%); }
+#view-desk.dark #desk-glow { opacity: 0; transition: opacity .6s; }
+/* shadows the candle casts across the desk */
+#desk-shadows { position: absolute; inset: 0; z-index: 3; pointer-events: none; }
+.cast { position: absolute; transform-origin: 0 50%; transform: rotate(var(--a)) scaleX(var(--flick));
+  background: radial-gradient(ellipse 100% 50% at 0% 50%, rgba(8,3,0,.82), rgba(8,3,0,.5) 45%, rgba(8,3,0,0) 100%); filter: blur(4px); opacity: calc(1.8 - var(--flick) * .8); }
+.cast-quill { filter: blur(3px); }
+#view-desk.dark .cast { opacity: 0; transition: opacity .6s; }
 .crystal-glow { position: absolute; left: 1395px; top: 215px; width: 300px; height: 300px; border-radius: 50%; z-index: 16; pointer-events: none;
   background: radial-gradient(circle, rgba(170,140,255,.32), rgba(130,100,240,.10) 45%, rgba(120,90,230,0) 70%); animation: orbpulse 5s ease-in-out infinite; }
 @keyframes orbpulse { 0%,100% { opacity: .65; transform: scale(.95); } 50% { opacity: 1; transform: scale(1.05); } }
@@ -265,7 +284,7 @@ body.busy, body.busy * { cursor: var(--cur-wait) !important; }
 /* desk props, placed by depth: further back = higher up and smaller */
 #prop-candle { left: 150px; top: 224px; width: 128px; height: 256px; z-index: 6; }
 #prop-crystal { left: 1470px; top: 290px; width: 150px; height: 165px; z-index: 17; }
-#prop-pounce { left: 112px; top: 532px; width: 108px; height: 155px; z-index: 6; }
+#prop-pounce { left: 76px; top: 523px; width: 180px; height: 171px; z-index: 6; }
 #prop-spectacles { left: 50px; top: 790px; width: 220px; height: 160px; transform: rotate(-10deg) scaleY(.72); z-index: 7; }
 #prop-inkwell { left: 1440px; top: 760px; width: 200px; height: 200px; z-index: 8; }
 #prop-quill { left: 1480px; top: 470px; width: 120px; height: 370px; z-index: 7; transform: rotate(16deg); transform-origin: 60px 362px; }
@@ -285,6 +304,7 @@ body.busy, body.busy * { cursor: var(--cur-wait) !important; }
 .page.right { padding: 62px 56px 0 48px; border-radius: 0 4px 4px 0; }
 .page.right { transform-origin: left center; }
 .page .folio { position: absolute; bottom: 26px; left: 0; right: 0; text-align: center; font-size: 20px; color: #6b4a22; font-style: italic; }
+.page .runhead:hover { color: var(--rubric); }
 .page .runhead { position: absolute; top: 26px; left: 0; right: 0; text-align: center; font-size: 15px; letter-spacing: .12em; color: #8a6b40; font-variant: small-caps; }
 
 /* text frame: exactly 16 lines at the book's usual hand */
@@ -377,7 +397,15 @@ body.busy, body.busy * { cursor: var(--cur-wait) !important; }
 
 /* the leaf that flips during a page turn */
 .turning-leaf { position: absolute; top: 24px; width: 488px; height: 706px; z-index: 8; pointer-events: none; transform-style: preserve-3d;
-  background: url(../assets/textures/parchment.png) center/100% 100%; box-shadow: 0 0 30px rgba(0,0,0,.3); }
+}
+.turning-leaf .leaf-face { position: absolute; inset: 0; backface-visibility: hidden; overflow: hidden; box-shadow: 0 0 24px rgba(0,0,0,.3); }
+.turning-leaf .leaf-face.back { transform: rotateY(180deg); }
+.turning-leaf .leaf-face > .page, .turning-leaf .leaf-face > .endpaper { position: absolute; left: 0; top: 0; }
+.turning-leaf .leaf-shade { position: absolute; inset: 0; pointer-events: none; opacity: 0;
+  animation: leafShade calc(.42s * var(--flip-k, 1)) ease-in-out forwards; }
+.turning-leaf.fwd .front .leaf-shade, .turning-leaf.back .back .leaf-shade { background: linear-gradient(to right, rgba(40,20,0,.45), rgba(40,20,0,.05) 70%); }
+.turning-leaf.fwd .back .leaf-shade, .turning-leaf.back .front .leaf-shade { background: linear-gradient(to left, rgba(40,20,0,.45), rgba(40,20,0,.05) 70%); }
+@keyframes leafShade { 0% { opacity: 0; } 50% { opacity: 1; } 100% { opacity: 0; } }
 .turning-leaf.fwd { left: 512px; transform-origin: left center; animation: flipFwd calc(.42s * var(--flip-k, 1)) ease-in-out forwards; }
 .turning-leaf.back { left: 24px; transform-origin: right center; animation: flipBack calc(.42s * var(--flip-k, 1)) ease-in-out forwards; }
 @keyframes flipFwd { from { transform: rotateY(0); } to { transform: rotateY(-180deg); } }

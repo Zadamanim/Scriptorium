@@ -8,6 +8,7 @@ import * as E from './editor.js';
 import { initDesk, props, openCrystal } from './desk.js';
 import { renderLibrary, chooseShelf, addShelfFlow, pushBack } from './library.js';
 import { initMessenger, lookNow } from './messenger.js';
+import { castShadows, setAmbient } from './ambience.js';
 
 const S = { settings: null, view: null, book: null, path: null, dirty: false, seal: null, leaving: false, W: 1720, H: 1000 };
 let candle, door;
@@ -24,6 +25,8 @@ let candle, door;
   initTooltips();
   fitStage(); window.addEventListener('resize', fitStage);
   makeStars();
+  castShadows();
+  setAmbient(S.settings.ambient || (matchMedia('(prefers-reduced-motion: reduce)').matches ? 'reduced' : 'full'));
   // two stone columns per wall, so turning round the room shows where each corner is
   document.querySelectorAll('.corners').forEach(c => c.append(
     el('div', { class: 'corner-col l' }), el('div', { class: 'corner-col r' })));
@@ -45,7 +48,7 @@ let candle, door;
   document.getElementById('lib-open-elsewhere').addEventListener('click', async () => { const p = await window.scribe.tome.openDialog(); if (p) openPath(p); });
   document.querySelectorAll('.edge').forEach(e => e.addEventListener('click', () => EDGES[S.view]?.[e.dataset.dir]?.[1]()));
 
-  initDesk({ save, saveAs, leaveDesk, quitApp, clasp: claspFlow, setFlipSpeed: (k) => { S.settings.flipSpeed = k; E.setFlipSpeed(k); window.scribe.setSettings({ flipSpeed: k }); }, settings: () => S.settings, lookForEdition: () => lookNow(), version: () => S.version, setUiScale, setCursorSize: async (n) => { S.settings.cursorSize = n; await applyCursors(n); window.scribe.setSettings({ cursorSize: n }); }, updateSettings: (s) => { S.settings = s; } });
+  initDesk({ save, saveAs, leaveDesk, quitApp, clasp: claspFlow, setAmbient: (m) => { S.settings.ambient = m; setAmbient(m); window.scribe.setSettings({ ambient: m }); }, setFlipSpeed: (k) => { S.settings.flipSpeed = k; E.setFlipSpeed(k); window.scribe.setSettings({ flipSpeed: k }); }, settings: () => S.settings, lookForEdition: () => lookNow(), version: () => S.version, setUiScale, setCursorSize: async (n) => { S.settings.cursorSize = n; await applyCursors(n); window.scribe.setSettings({ cursorSize: n }); }, updateSettings: (s) => { S.settings = s; } });
   E.initBookChrome();
   E.setFlipSpeed(S.settings.flipSpeed ?? 1);
   initMessenger({ toWindow: async () => { if (S.view === 'desk') await leaveDesk(); else if (S.view === 'door') await look('hall', 'right'); else if (S.view === 'library') await look('hall', 'left'); } });

@@ -40,6 +40,11 @@ export function initDesk(callbacks) {
   document.getElementById('turn-next').addEventListener('click', () => E.turn(1));
   E.ed.onSelection = () => { if (quillBox) syncQuill(); };
   E.ed.onFlow = (i) => openFlow(i);
+  // clicking the line at the top of a page (book or chapter name) opens Pages & Chapters
+  E.ed.onRunhead = () => {
+    if (E.ed.readOnly) { E.goToSpread(1); return; }
+    toggleQuillMenu(true); showView('pages');
+  };
   E.ed.onMarkMenu = async (m) => {
     const name = el('input', { class: 'field', value: m.name });
     const r = await dialog({ title: 'A Mark', body: el('div', {}, el('p', {}, 'Its name:'), name),
@@ -262,6 +267,10 @@ export function openSpectacles() {
       el('div', { class: 'qm-row', id: 'sp-flip' }, ...[[0, 'Instant'], [0.55, 'Brisk'], [1, 'Usual'], [1.7, 'Leisurely']].map(([k, label]) =>
         el('button', { class: 'qm-btn wide' + ((s.flipSpeed ?? 1) === k ? ' on' : ''), onclick: (e) => {
           app.setFlipSpeed(k); box.querySelectorAll('#sp-flip .qm-btn').forEach(b => b.classList.toggle('on', b === e.currentTarget)); } }, label))),
+      el('div', { class: 'qm-note', style: 'font-style:normal;opacity:1;margin-top:14px' }, 'Background animations (flicker, fire, stars, mist)'),
+      el('div', { class: 'qm-row', id: 'sp-ambient' }, ...[['full', 'Lively'], ['reduced', 'Gentle'], ['off', 'Still']].map(([m, label]) =>
+        el('button', { class: 'qm-btn wide' + ((document.body.dataset.ambient || 'full') === m ? ' on' : ''), onclick: (e) => {
+          app.setAmbient(m); box.querySelectorAll('#sp-ambient .qm-btn').forEach(b => b.classList.toggle('on', b === e.currentTarget)); } }, label))),
       el('div', { class: 'qm-row', style: 'margin-top:12px' },
         el('button', { class: 'btn', id: 'sp-full', onclick: () => window.scribe.toggleFullscreen() }, 'Full screen (F11)'),
         el('button', { class: 'btn', id: 'sp-flow', 'data-tip': 'Spread overflowing writing onto the pages that follow', onclick: () => { box.close(); openFlow(); } }, 'Let the words flow…')),
@@ -318,6 +327,7 @@ function actions() {
     { label: 'Size of the cursor (mouse pointer)', keys: 'cursor mouse pointer size bigger arrow large', where: 'the Spectacles', prop: 'spectacles', run: () => openSpectacles() },
     { label: 'Look for a new edition (update)', keys: 'update updates new version edition upgrade latest download raven', where: 'the Spectacles · the raven comes to the window', prop: 'spectacles', run: () => app.lookForEdition() },
     { label: 'Speed of turning pages', keys: 'page turn flip speed animation fast slow instant turning', where: 'the Spectacles', prop: 'spectacles', run: () => openSpectacles() },
+    { label: 'Background animations (calmer or still)', keys: 'animation animations motion reduce flicker still calm movement dizzy distracting stop', where: 'the Spectacles', prop: 'spectacles', run: () => openSpectacles() },
     { label: 'Full screen', keys: 'full screen fullscreen maximise maximize', where: 'the Spectacles · F11', prop: 'spectacles', run: () => window.scribe.toggleFullscreen() },
     { label: 'Leave the desk (back to the window)', keys: 'back return menu home main menu window look up leave desk library', where: 'the Candle · or the top edge of the screen', prop: 'candle', run: () => app.leaveDesk() },
     { label: 'Close Scriptorium', keys: 'quit exit close application leave door', where: 'the Doorway: look left from the window', run: () => app.quitApp() },
@@ -399,12 +409,12 @@ export async function openFlow(pageIndex) {
   const radio = (v, label, checked) => el('label', {}, el('input', { type: 'radio', name: 'flow', value: v, checked }), label);
   const fromBox = el('input', { class: 'field', type: 'number', min: 1, max: lastFolio, value: folio(i), style: 'width:80px;font-size:18px;padding:2px 6px' });
   const toBox = el('input', { class: 'field', type: 'number', min: 1, max: lastFolio, value: lastFolio, style: 'width:80px;font-size:18px;padding:2px 6px' });
-  const keep = el('input', { type: 'checkbox', checked: true });
+  const keep = el('input', { type: 'checkbox' });
   const range = el('label', {}, el('input', { type: 'radio', name: 'flow', value: 'range' }), 'Only pages ', fromBox, ' to ', toBox);
   [fromBox, toBox].forEach(x => x.addEventListener('focus', () => { range.querySelector('input').checked = true; }));
   const err = el('p', { class: 'small', style: 'color:#8b1a12;min-height:1.1em;margin:4px 0 0' });
   const body = el('div', {},
-    el('p', {}, 'Spread the writing across pages so nothing hides below a page’s frame. Pages that hold too little are filled from the pages after them. Picture pages are left as they are.'),
+    el('p', {}, 'Spread the writing across pages so nothing hides below a page’s frame, and no page is left half-empty. The page breaks thou madest are taken out so the words run on. Picture pages keep their place in the text.'),
     el('div', { class: 'shelf-pick' },
       radio('chapter', ch ? `This chapter — “${ch.title}” (pages ${folio(a)}–${folio(b)})` : `These pages (${folio(a)}–${folio(b)})`, true),
       radio('book', `The whole book (pages 1–${lastFolio})`, false),

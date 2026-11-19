@@ -9,7 +9,7 @@ export const ed = {
   savedRange: null, savedEditable: null, pendingSize: null,
   sealed: false, locked: false, hint: '', readOnly: false,
   flip: 1, // page-turn speed: 0 instant, 0.55 brisk, 1 usual, 1.7 leisurely
-  onDirty: () => {}, onTitle: () => {}, onSelection: () => {}, onClasp: () => {}, onUnlock: () => {}, onFlow: () => {}, onMarkMenu: () => {},
+  onDirty: () => {}, onTitle: () => {}, onSelection: () => {}, onClasp: () => {}, onUnlock: () => {}, onFlow: () => {}, onMarkMenu: () => {}, onRunhead: () => {},
 };
 export function initBookChrome() {
   document.getElementById('front-cover').addEventListener('click', () => { if (ed.locked) ed.onUnlock(); else goToSpread(0); });
@@ -202,7 +202,7 @@ function renderText(pg, p, i, side) {
     pg.append(ct);
   } else {
     const head = side === 'left' ? ed.book.title : (chapterAt(i)?.title || '');
-    if (head) pg.append(el('div', { class: 'runhead' }, head));
+    if (head) pg.append(el('div', { class: 'runhead clickable', 'data-tip': ed.readOnly ? 'Turn to the Contents' : 'Pages & chapters', onclick: () => ed.onRunhead(i) }, head));
   }
   const text = el('div', { class: 'text', contenteditable: ed.readOnly ? 'false' : 'true', spellcheck: ed.readOnly ? 'false' : 'true' });
   text.innerHTML = p.html || '<p><br></p>';
@@ -336,11 +336,28 @@ export function goToSpread(s) {
   const book = document.getElementById('book');
   const k = ed.flip;
   if (!k) { ed.spread = s; ed.savedRange = null; render(); turning = false; return Promise.resolve(); }
-  const leaf = el('div', { class: 'turning-leaf ' + (fwd ? 'fwd' : 'back') });
+  // The leaf that turns carries the real writing: its front is the page being lifted, its back
+  // is the page that lands on the other side. The page beneath it is laid out straight away.
+  const sp = $spread();
+  const [l, r] = indicesOf(s);
+  const lifted = fwd ? sp.lastElementChild : sp.firstElementChild;
+  const beneath = fwd ? renderPage(r, 'right') : renderPage(l, 'left');
+  const landing = fwd ? renderPage(l, 'left') : renderPage(r, 'right');
+  const face = (pg, cls) => {
+    pg.removeAttribute('data-index');
+    pg.querySelectorAll('[contenteditable]').forEach(n => n.setAttribute('contenteditable', 'false'));
+    pg.querySelectorAll('.overflow-flag, .add-leaf').forEach(n => n.remove());
+    return el('div', { class: 'leaf-face ' + cls }, pg, el('div', { class: 'leaf-shade' }));
+  };
+  const front = lifted.cloneNode(true);
+  const scrolled = lifted.querySelector('.text')?.scrollTop || 0;
+  const leaf = el('div', { class: 'turning-leaf ' + (fwd ? 'fwd' : 'back') }, face(front, 'front'), face(landing, 'back'));
+  ed.savedRange = null;
+  lifted.replaceWith(beneath);
   book.append(leaf);
+  const ft = front.querySelector('.text'); if (ft) ft.scrollTop = scrolled;
   return new Promise((res) => {
-    setTimeout(() => { ed.spread = s; ed.savedRange = null; render(); }, 210 * k);
-    setTimeout(() => { leaf.remove(); turning = false; res(); }, 430 * k);
+    setTimeout(() => { ed.spread = s; render(); leaf.remove(); turning = false; res(); }, 430 * k);
   });
 }
 function coverLeaf(dir) {

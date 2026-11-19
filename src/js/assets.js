@@ -32,12 +32,17 @@ export async function applyCursors(size = 32) {
 }
 
 export class Prop {
+  static ambient = 'full';
+  static all = new Set();
+  /** Spectacles › background animations: idle loops play slower ('reduced') or hold still ('off') */
+  static setAmbient(m) { Prop.ambient = m; for (const p of Prop.all) if (p.state === 'idle' && !p.once && !p.locked) { p.state = null; p.setState('idle'); } }
   constructor(el, key, { onClick, hover = true } = {}) {
     this.el = el; this.key = key; this.def = manifest[key];
     this.img = document.createElement('img');
     this.img.draggable = false; this.img.alt = '';
     el.appendChild(this.img);
     this.state = null; this.frame = 0; this.once = null; this.locked = false;
+    Prop.all.add(this);
     this.setState('idle');
     if (hover) {
       el.addEventListener('mouseenter', () => { this.hovering = true; if (!this.once && !this.locked) this.setState('hover'); });
@@ -56,7 +61,11 @@ export class Prop {
     this.state = st; this.frame = 0; this.draw();
     clearInterval(this.timer);
     const fr = this.frames(st);
-    if (fr.length > 1) this.timer = setInterval(() => this.tick(), 1000 / (this.def.fps || 6));
+    if (fr.length < 2) return;
+    let fps = this.def.fps || 6;
+    if (st === 'idle' && Prop.ambient === 'off') return;
+    if (st === 'idle' && Prop.ambient === 'reduced') fps /= 2.5;
+    this.timer = setInterval(() => this.tick(), 1000 / fps);
   }
   tick() {
     const fr = this.frames(this.state);
