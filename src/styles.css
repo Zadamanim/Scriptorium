@@ -363,6 +363,14 @@ body[data-ambient=off] .crystal-fog { animation: none; }
 .overflow-flag { position: absolute; right: 18px; bottom: 18px; display: none; font-size: 15px; color: #fff3df; background: #8b1a12; padding: 3px 10px 3px 8px;
   border-radius: 2px 10px 10px 2px; box-shadow: 0 2px 4px rgba(0,0,0,.4); font-style: italic; }
 .page.overflowing .overflow-flag { display: block; }
+.room-flag { position: absolute; right: 18px; bottom: 18px; display: none; font-size: 15px; color: #3a250c; background: rgba(201,162,76,.85); padding: 3px 10px 3px 8px;
+  border-radius: 3px; box-shadow: 0 2px 6px rgba(0,0,0,.3); font-style: italic; }
+.page.roomy .room-flag { display: block; }
+.room-flag:hover { filter: brightness(1.12); }
+.book.readonly .room-flag, .turning-leaf .room-flag, .turning-leaf .overflow-flag { display: none !important; }
+/* a ribbon riding over with a turning leaf, sliding to where it will rest on the other side */
+.turning-leaf .ribbon.riding { top: 698px; pointer-events: none; animation: ribbonRide calc(.42s * var(--flip-k, 1)) ease-in-out forwards; }
+@keyframes ribbonRide { to { left: var(--x1); } }
 .overflow-flag:hover { filter: brightness(1.2); }
 .page.measure { position: absolute; left: -9999px; top: 0; visibility: hidden; pointer-events: none; }
 /* no scrollbar while measuring: one that comes and goes would change the width between tries */
@@ -606,3 +614,4 @@ body[data-ambient=off] .crystal-fog { animation: none; }
 .toggle input { accent-color: #8b1a12; width: 18px; height: 18px; }
 /* rest pages are drawn on their own layer, the same way the turning leaf is, so text doesn't hop a pixel when a turn ends */
 .spread > .page, .spread > .endpaper { will-change: transform; }
+.page.right .overflow-flag, .page.right .room-flag { right: 60px; }

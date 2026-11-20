@@ -40,7 +40,7 @@ export function initDesk(callbacks) {
   document.getElementById('turn-prev').addEventListener('click', () => E.turn(-1));
   document.getElementById('turn-next').addEventListener('click', () => E.turn(1));
   E.ed.onSelection = () => { if (quillBox) syncQuill(); };
-  E.ed.onFlow = (i) => openFlow(i);
+  E.ed.onFlow = (i, mode) => openFlow(i, mode);
   // clicking the line at the top of a page (book or chapter name) opens Pages & Chapters
   E.ed.onRunhead = () => {
     if (E.ed.readOnly) { E.goToSpread(1); return; }
@@ -155,6 +155,7 @@ const VIEWS = {
       opt('qm-tear', '✄', 'Tear out this leaf', () => E.tearOutCurrent()),
       opt('qm-unchapter', '⊘', 'Unmark this chapter', () => E.removeChapterMarkCurrent(), 'words stay'),
       opt('qm-flow', '⤵', 'Let the words flow…', () => openFlow(), 'spread text so none hides'),
+      opt('qm-gather', '⤴', 'Gather the words…', () => openFlow(undefined, 'gather'), 'fill up half-empty pages'),
       opt('qm-mark', '⟡', 'Place a mark on this page', () => E.addMarkHere(), 'a gold cord to find it again'));
   },
   caps(b) {
@@ -178,7 +179,7 @@ const VIEWS = {
 const VIEW_OF = {
   'qm-fontlist': 'font', 'qm-import': 'font', 'qm-sizes': 'size', 'qm-align': 'align', 'qm-spacing': 'spacing',
   'qm-ul': 'lists', 'qm-ol': 'lists', 'qm-tab': 'lists', 'qm-indent': 'lists', 'qm-outdent': 'lists', 'qm-firstindent': 'lists',
-  'qm-pagebreak': 'pages', 'qm-flow': 'pages', 'qm-mark': 'pages', 'qm-chapter': 'pages', 'qm-addleaf': 'pages', 'qm-tear': 'pages', 'qm-unchapter': 'pages',
+  'qm-pagebreak': 'pages', 'qm-flow': 'pages', 'qm-gather': 'pages', 'qm-mark': 'pages', 'qm-chapter': 'pages', 'qm-addleaf': 'pages', 'qm-tear': 'pages', 'qm-unchapter': 'pages',
   'qm-dropcap': 'caps', 'qm-dropcap-all': 'caps', 'qm-default': 'book', 'qm-bold': 'main', 'qm-italic': 'main', 'qm-underline': 'main', 'qm-manner': 'main',
 };
 
@@ -300,6 +301,7 @@ const W_QUILL = 'upon the Quill';
 function actions() {
   return [
     { label: 'Page break', keys: 'page break new page split next page ctrl enter', where: W_QUILL + ' › Pages', ctl: 'qm-pagebreak', run: () => E.pageBreak() },
+    { label: 'Gather the words back to fill half-empty pages (close up gaps)', keys: 'gather collapse close gaps empty space half empty pages fill shrink smaller text size remove page breaks pull back compact tighten room to spare', where: W_QUILL + ' › Pages · or click “room to spare”', ctl: 'qm-gather', run: () => openFlow(undefined, 'gather') },
     { label: 'Let the words flow onto following pages (redistribute)', keys: 'redistribute reflow overflow overfloweth flow spread text pages fit automatically extend distribute too much text', where: W_QUILL + ' › Pages · or click “overfloweth”', ctl: 'qm-flow', run: () => openFlow() },
     { label: 'Place a mark (bookmark) on this page', keys: 'mark bookmark marker ribbon cord tassel remember place save spot', where: W_QUILL + ' › Pages · the gold cords below the book', ctl: 'qm-mark', run: () => E.addMarkHere() },
     { label: 'Chapter ribbons (jump to a chapter)', keys: 'ribbon ribbons chapter jump skip go to', where: 'the silk ribbons hanging below the book', illum: '#ribbons', run: null },
@@ -411,7 +413,8 @@ export function illuminate(els) {
 }
 
 // ------------------------------------------------------------------ LET THE WORDS FLOW (redistribute)
-export async function openFlow(pageIndex) {
+export async function openFlow(pageIndex, mode) {
+  const gather = mode === 'gather';
   const P = E.ed.book.pages;
   const i = Math.max(2, pageIndex ?? E.currentIndex());
   const [a, b] = E.chapterBounds(i);
@@ -425,7 +428,9 @@ export async function openFlow(pageIndex) {
   [fromBox, toBox].forEach(x => x.addEventListener('focus', () => { range.querySelector('input').checked = true; }));
   const err = el('p', { class: 'small', style: 'color:#8b1a12;min-height:1.1em;margin:4px 0 0' });
   const body = el('div', {},
-    el('p', {}, 'Spread the writing across pages so nothing hides below a page’s frame, and no page is left half-empty. The page breaks thou madest are taken out so the words run on. Picture pages keep their place in the text.'),
+    el('p', {}, gather
+      ? 'Draw the words back up into the room left at the foot of the pages — handy after making the writing smaller. Each page is filled as full as it will go, and the pages left over are taken out. Picture pages keep their place in the text.'
+      : 'Spread the writing across pages so nothing hides below a page’s frame, and no page is left half-empty. The page breaks thou madest are taken out so the words run on. Picture pages keep their place in the text.'),
     el('div', { class: 'shelf-pick' },
       radio('chapter', ch ? `This chapter — “${ch.title}” (pages ${folio(a)}–${folio(b)})` : `These pages (${folio(a)}–${folio(b)})`, true),
       radio('book', `The whole book (pages 1–${lastFolio})`, false),
@@ -434,8 +439,8 @@ export async function openFlow(pageIndex) {
     el('p', { class: 'small', style: 'margin:2px 0 0 36px' }, 'Chapters always begin on a fresh page.'),
     err);
   const r = await dialog({
-    title: 'Let the Words Flow', body,
-    buttons: [{ label: 'Nay', value: null }, { label: 'Let them flow', kind: 'primary', value: () => {
+    title: gather ? 'Gather the Words' : 'Let the Words Flow', body,
+    buttons: [{ label: 'Nay', value: null }, { label: gather ? 'Gather them' : 'Let them flow', kind: 'primary', value: () => {
       const mode = body.querySelector('input[name=flow]:checked').value;
       if (mode === 'chapter') return [a, b];
       if (mode === 'book') return [2, P.length - 1];

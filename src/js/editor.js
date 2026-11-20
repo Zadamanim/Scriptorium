@@ -73,6 +73,27 @@ function ribbonItems() {
   for (const m of ed.book.marks || []) { const i = P.findIndex(p => p.id === m.pageId); if (i >= 0) items.push({ kind: 'mark', index: i, name: m.name, mark: m }); }
   return items;
 }
+/** where each ribbon hangs for a given spread: [{ t, key, x, len }] (book coordinates) */
+function ribbonLayout(spread) {
+  const items = ribbonItems();
+  const closed = spread < 0;
+  const [l, r] = closed ? [-1, -1] : indicesOf(spread);
+  const out = [];
+  const put = (list, x0, step) => list.forEach((t, k) => {
+    const x = x0 + k * step;
+    if (x < 20 || x > 1000) return;
+    out.push({ t, key: `${t.kind}:${t.index}:${t.name}`, x, len: 70 + ((t.index * 37 + k * 11) % 26) });
+  });
+  // a shut book: the ribbons slip out from under the bottom edge of the cover, between the pages
+  if (closed) { put(items.sort((a, b) => a.index - b.index), 600, 28); return out; }
+  put(items.filter(t => t.index < l).sort((a, b) => b.index - a.index), 470, -28);
+  put(items.filter(t => t.index === l || t.index === r), 498, 16);
+  put(items.filter(t => t.index > r).sort((a, b) => a.index - b.index), 548, 28);
+  return out;
+}
+function ribbonEl({ t, x, len }) {
+  return el('div', { class: `ribbon ${t.kind} clickable`, style: `left:${x}px;height:${len}px;--rc:${t.color || '#b8902e'}` });
+}
 function renderRibbons() {
   const book = document.getElementById('book');
   let box = document.getElementById('ribbons');
@@ -80,25 +101,33 @@ function renderRibbons() {
   box.innerHTML = '';
   box.classList.toggle('closed', ed.spread < 0);
   if (ed.locked) return;
-  const items = ribbonItems();
-  const closed = ed.spread < 0;
-  const [l, r] = closed ? [-1, -1] : indicesOf(ed.spread);
-  const put = (list, x0, step) => list.forEach((t, k) => {
-    const x = x0 + k * step;
-    if (x < 20 || x > 1000) return;
-    const len = 70 + ((t.index * 37 + k * 11) % 26);
-    const tip = `${t.kind === 'chapter' ? 'Chapter' : 'Mark'}: ${t.name} — page ${folio(t.index) || '—'}` + (t.kind === 'mark' && !ed.readOnly ? ' (right-click to rename or remove)' : '');
-    const rb = el('div', { class: `ribbon ${t.kind} clickable`, 'data-tip': tip, style: `left:${x}px;height:${len}px;--rc:${t.color || '#b8902e'}` });
+  for (const r of ribbonLayout(ed.spread)) {
+    const { t } = r;
+    const rb = ribbonEl(r);
+    rb.dataset.key = r.key;
+    rb.dataset.tip = `${t.kind === 'chapter' ? 'Chapter' : 'Mark'}: ${t.name} — page ${folio(t.index) || '—'}` + (t.kind === 'mark' && !ed.readOnly ? ' (right-click to rename or remove)' : '');
     rb.addEventListener('click', () => { if (ed.locked) return; goToPage(t.index).then(() => { if (!ed.readOnly) focusPageText(t.index, 'start'); }); });
     if (t.mark) rb.addEventListener('contextmenu', (e) => { e.preventDefault(); if (!ed.readOnly) ed.onMarkMenu(t.mark); });
     else rb.addEventListener('contextmenu', (e) => { e.preventDefault(); ed.onBind?.('ribbons'); });
     box.append(rb);
-  });
-  // a shut book: the ribbons slip out from under the bottom edge of the cover, between the pages
-  if (closed) { put(items.sort((a, b) => a.index - b.index), 600, 28); return; }
-  put(items.filter(t => t.index < l).sort((a, b) => b.index - a.index), 470, -28);
-  put(items.filter(t => t.index === l || t.index === r), 498, 16);
-  put(items.filter(t => t.index > r).sort((a, b) => a.index - b.index), 548, 28);
+  }
+}
+/** ribbons lying in the pages being turned go over with the leaf, sliding to where they'll rest */
+function carryRibbons(leaf, from, to, fwd) {
+  if (ed.locked || from < 0 || to < 0) return;
+  const before = new Map(ribbonLayout(from).map(r => [r.key, r]));
+  for (const r of ribbonLayout(to)) {
+    const was = before.get(r.key);
+    if (!was || (fwd ? !(was.x > 512 && r.x < 512) : !(was.x < 512 && r.x > 512))) continue;
+    // leaf-local x: forward leaves hinge at their left edge (book x 512), backward ones at their right (book x 512)
+    const x0 = fwd ? was.x - 512 : was.x - 24;
+    const x1 = fwd ? 512 - r.x : 1000 - r.x;
+    const rb = ribbonEl({ ...r, x: x0, len: was.len });
+    rb.classList.add('riding');
+    rb.style.setProperty('--x1', x1 + 'px');
+    leaf.append(rb);
+    document.querySelector(`#ribbons .ribbon[data-key="${CSS.escape(r.key)}"]`)?.style.setProperty('visibility', 'hidden');
+  }
 }
 export function addMarkHere() {
   if (ed.readOnly) return;
@@ -276,11 +305,23 @@ function renderText(pg, p, i, side) {
   text.addEventListener('paste', onPaste);
   text.addEventListener('drop', (e) => e.preventDefault());
   pg.append(text, el('div', { class: 'folio' }, folio(i)),
-    el('div', { class: 'overflow-flag clickable', 'data-tip': 'This page holds more than its frame can show. Click to let the words flow onto the pages that follow.', onclick: () => ed.onFlow(i) }, 'overfloweth ⤵'));
+    el('div', { class: 'overflow-flag clickable', 'data-tip': 'This page holds more than its frame can show. Click to let the words flow onto the pages that follow.', onclick: () => ed.onFlow(i) }, 'overfloweth ⤵'),
+    el('div', { class: 'room-flag clickable', 'data-tip': 'This page has room to spare, and the writing carries on overleaf. Click to gather the words back so the pages fill up.', onclick: () => ed.onFlow(i, 'gather') }, 'room to spare ⤴'));
 }
 
 function checkOverflow(pg, text) {
-  pg.classList.toggle('overflowing', text.scrollHeight > text.clientHeight + 2);
+  const over = text.scrollHeight > text.clientHeight + 2;
+  pg.classList.toggle('overflowing', over);
+  // room to spare: two or more empty lines at the foot, and the same run of writing carries on overleaf
+  let room = false;
+  const i = +pg.dataset.index, next = pages()[i + 1];
+  if (!over && !ed.readOnly && next && next.kind === 'text' && !next.chapter && !next.hardBreak && text.lastElementChild) {
+    const line = parseFloat(getComputedStyle(text).lineHeight) || 36;
+    const used = text.lastElementChild.offsetTop + text.lastElementChild.offsetHeight - text.offsetTop;
+    const nextText = document.createElement('div'); nextText.innerHTML = next.html || '';
+    room = text.clientHeight - used >= line * 2 - 1 && !!nextText.textContent.trim();
+  }
+  pg.classList.toggle('roomy', room);
 }
 
 // ------------------------------------------------------------------ editing events
@@ -419,6 +460,7 @@ export function goToSpread(s) {
   const leaf = el('div', { class: 'turning-leaf ' + (fwd ? 'fwd' : 'back') }, face(front, 'front'), face(landing, 'back'));
   ed.savedRange = null;
   lifted.replaceWith(beneath);
+  carryRibbons(leaf, ed.spread, s, fwd);
   book.append(leaf);
   const ft = front.querySelector('.text'); if (ft) ft.scrollTop = scrolled;
   return new Promise((res) => {
