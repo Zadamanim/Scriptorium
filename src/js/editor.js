@@ -222,7 +222,8 @@ function renderTitle() {
     f.addEventListener('input', () => { ed.book[f.dataset.field] = f.textContent.replace(/\n/g, ' '); markDirty(); ed.onTitle(); const who = document.querySelector('.bookplate .who'); if (who) who.textContent = ed.book.author || 'a Scribe unknown'; });
     f.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); (f === t ? a : null)?.focus(); if (f === a) f.blur(); } });
   }
-  wrap.append(t, el('div', { class: 'ornament' }, '❦ ✠ ❦'), el('div', { class: 'by-line' }, 'set down by the hand of'), a,
+  const bd = ed.book.binding || {}, top = bd.ornTop ?? '❦', bottom = bd.ornBottom ?? '✠';
+  wrap.append(t, el('div', { class: 'ornament' }, [top, bottom, top].filter(Boolean).join(' ')), el('div', { class: 'by-line' }, 'set down by the hand of'), a,
     el('div', { class: 'colophon' }, 'Here beginneth the book'));
   return wrap;
 }
@@ -748,4 +749,8 @@ export function restorePages(snap) {
 export const textIndexForFolio = (n) => n + 1;
 
 /** redraw what the Bindery changes, without disturbing the page being written */
-export function rerenderBinding() { renderCover(); renderRibbons(); }
+export function rerenderBinding() {
+  renderCover(); renderRibbons();
+  const orn = document.querySelector('#spread .title-page .ornament'), bd = ed.book.binding || {};
+  if (orn) { const top = bd.ornTop ?? '❦', bottom = bd.ornBottom ?? '✠'; orn.textContent = [top, bottom, top].filter(Boolean).join(' '); }
+}

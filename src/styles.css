@@ -315,8 +315,8 @@ body[data-ambient=off] .crystal-fog { animation: none; }
 /* ------------------------------------------------------------- the book on its lectern */
 .book { position: absolute; left: 348px; top: 102px; width: 1024px; height: 754px; perspective: 2400px; z-index: 4; transition: transform calc(.35s * var(--flip-k, 1)) ease-in-out; }
 .book .cover { position: absolute; inset: 0; border-radius: 10px; background: url(../assets/textures/leather.png); background-size: 300px;
-  box-shadow: 0 30px 50px rgba(0,0,0,.7), inset 0 0 0 3px #2a0b07, inset 0 0 0 7px rgba(201,162,76,.5), inset 0 0 40px rgba(0,0,0,.6); }
-.page-stack { position: absolute; top: 24.7px; bottom: 24px; width: 20px; background: repeating-linear-gradient(90deg, #d8c39a 0 1px, #b49a6c 1px 2px); border-radius: 2px; }
+  box-shadow: 0 30px 50px rgba(0,0,0,.7), inset 0 0 0 3px #2a0b07, inset 0 0 0 7px color-mix(in srgb, var(--gilt, #c9a24c) 50%, transparent), inset 0 0 40px rgba(0,0,0,.6); }
+.page-stack { position: absolute; top: 24.35px; bottom: 24px; width: 20px; background: repeating-linear-gradient(90deg, #d8c39a 0 1px, #b49a6c 1px 2px); border-radius: 2px; }
 .page-stack.left { left: 14px; } .page-stack.right { right: 14px; }
 .spread { position: absolute; left: 24px; top: 24px; width: 976px; height: 706px; display: flex; }
 .gutter { position: absolute; left: 50%; top: 24px; width: 90px; height: 706px; transform: translateX(-50%); pointer-events: none; z-index: 3;
@@ -398,8 +398,9 @@ body[data-ambient=off] .crystal-fog { animation: none; }
 .toc-empty { font-style: italic; color: #7a5a30; text-align: center; font-size: 20px; margin-top: 40px; }
 
 /* endpapers */
-.endpaper { position: relative; width: 488px; height: 706px; border-radius: 4px 0 0 4px; background-color: #4a1712;
-  background-image: radial-gradient(circle, rgba(201,162,76,.55) 0 2px, transparent 3px), radial-gradient(circle, rgba(201,162,76,.25) 0 1.5px, transparent 2.5px),
+/* the inside of the cover: a darker shade of the binding's leather, dotted in the colour of its lettering */
+.endpaper { position: relative; width: 488px; height: 706px; border-radius: 4px 0 0 4px; background-color: color-mix(in srgb, var(--leather, #6a2318) 70%, #000);
+  background-image: radial-gradient(circle, color-mix(in srgb, var(--gilt, #c9a24c) 55%, transparent) 0 2px, transparent 3px), radial-gradient(circle, color-mix(in srgb, var(--gilt, #c9a24c) 25%, transparent) 0 1.5px, transparent 2.5px),
     radial-gradient(ellipse at 50% 50%, rgba(0,0,0,0) 40%, rgba(0,0,0,.45) 100%);
   background-size: 34px 34px, 34px 34px, 100% 100%; background-position: 0 0, 17px 17px, 0 0; }
 .endpaper.right { border-radius: 0 4px 4px 0; }
@@ -419,8 +420,8 @@ body[data-ambient=off] .crystal-fog { animation: none; }
 .corner:hover { opacity: 1 !important; }
 .corner.disabled { display: none; }
 /* on the inside of a cover the turning corner takes the cover's colour */
-.book:has(#spread > .endpaper.left) .corner.prev { background: linear-gradient(45deg, #6a2318 0 48%, rgba(0,0,0,.35) 50%, transparent 52%); }
-.book:has(#spread > .endpaper.right) .corner.next { background: linear-gradient(-45deg, #6a2318 0 48%, rgba(0,0,0,.35) 50%, transparent 52%); }
+.book:has(#spread > .endpaper.left) .corner.prev { background: linear-gradient(45deg, var(--leather, #6a2318) 0 48%, rgba(0,0,0,.35) 50%, transparent 52%); }
+.book:has(#spread > .endpaper.right) .corner.next { background: linear-gradient(-45deg, var(--leather, #6a2318) 0 48%, rgba(0,0,0,.35) 50%, transparent 52%); }
 /* while the cover swings, the corner over it stays unseen (it still answers a click) */
 .book.swinging .corner.prev { opacity: 0 !important; }
 /* nothing lies under the inside of a cover, so no page edges show beside it */
@@ -470,7 +471,7 @@ body[data-ambient=off] .crystal-fog { animation: none; }
   background: linear-gradient(90deg, rgba(0,0,0,.55), rgba(0,0,0,.1) 5%, rgba(255,255,255,.05) 7%, rgba(0,0,0,0) 12%), url(../assets/textures/leather.png);
   background-size: 100% 100%, 300px; box-shadow: 0 30px 50px rgba(0,0,0,.7), inset 0 0 40px rgba(0,0,0,.5);
   flex-direction: column; align-items: center; justify-content: center; text-align: center; color: #e8c97a; }
-.front-cover::before { content: ''; position: absolute; inset: 34px 30px 34px 52px; border: 3px double rgba(232,201,122,.75); border-radius: 4px; box-shadow: inset 0 0 0 10px rgba(0,0,0,.08), 0 0 0 8px rgba(232,201,122,.12); pointer-events: none; }
+.front-cover::before { content: ''; position: absolute; inset: 34px 30px 34px 52px; border: 3px double color-mix(in srgb, var(--gilt, #e8c97a) 75%, transparent); border-radius: 4px; box-shadow: inset 0 0 0 10px rgba(0,0,0,.08), 0 0 0 8px color-mix(in srgb, var(--gilt, #e8c97a) 12%, transparent); pointer-events: none; }
 .front-cover .fc-orn { font-size: 46px; color: var(--gilt, #d8b058); font-family: 'Segoe UI Symbol', 'DejaVu Sans', 'Noto Sans Symbols', serif; min-height: 56px; line-height: 56px; text-shadow: 0 2px 0 rgba(0,0,0,.6); margin: 18px 0; }
 .front-cover .fc-title { font-family: var(--title-font); font-size: 46px; line-height: 1.15; max-width: 380px; margin-left: 22px;
   color: var(--gilt, #f1d27c); text-shadow: 0 2px 0 rgba(20,6,2,.85), 0 0 14px rgba(241,210,124,.2); }

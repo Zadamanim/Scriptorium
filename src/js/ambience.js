@@ -76,9 +76,10 @@ function castSpectacles(host) {
   const ux = dx / dist * g, uy = dy / dist * g;
   // rise as an affine function of the desk point p: rise = A*(Ti p).y + B
   const pieces = [
-    { clip: '34px 0, 186px 0, 186px 100px, 220px 100px, 220px 160px, 0 160px, 0 100px, 34px 100px', A: -1, B: RIM_FOOT },
-    { clip: '0 0, 34px 0, 34px 100px, 0 100px', A: HINGE_RISE / (HINGE - TIP), B: -TIP * HINGE_RISE / (HINGE - TIP) },
-    { clip: '186px 0, 220px 0, 220px 100px, 186px 100px', A: HINGE_RISE / (HINGE - TIP), B: -TIP * HINGE_RISE / (HINGE - TIP) },
+    // the rims (everything but the arms); the cut follows the narrow gap between each arm and its rim, right up to the hinge
+    { clip: '40px 0, 180px 0, 186px 60px, 193px 80px, 193.5px 100px, 194.5px 108px, 220px 108px, 220px 160px, 0 160px, 0 108px, 25.5px 108px, 26.5px 100px, 27px 80px, 34px 60px', A: -1, B: RIM_FOOT },
+    { clip: '0 0, 40px 0, 34px 60px, 27px 80px, 26.5px 100px, 25.5px 108px, 0 108px', A: HINGE_RISE / (HINGE - TIP), B: -TIP * HINGE_RISE / (HINGE - TIP) },
+    { clip: '180px 0, 220px 0, 220px 108px, 194.5px 108px, 193.5px 100px, 193px 80px, 186px 60px', A: HINGE_RISE / (HINGE - TIP), B: -TIP * HINGE_RISE / (HINGE - TIP) },
   ];
   const cs = getComputedStyle(prop);
   if (!prop._specHooked) { prop._specHooked = true; prop.addEventListener('frame', (e) => prop._specSrc.forEach(f => f(e.detail))); }
