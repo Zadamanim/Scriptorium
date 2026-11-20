@@ -12,7 +12,7 @@ const LIGHT_H = 230;
 // above that spot, so anything lifted (the pounce pot when shaken) leaves its shadow behind on the desk.
 //   base: where it touches the desk · H: its height in px · flat: lies on the desk, so only nudged aside
 const CASTERS = [
-  { name: 'pounce', base: [166, 662], H: 135 },
+  { name: 'pounce', base: [166, 665], H: 135 },
   { name: 'inkwell', base: [1540, 940], H: 125, dMin: 0.55 },
   { name: 'quill', base: [1540, 940], H: 470 },
   { name: 'crystal', base: [1545, 444], H: 142 },
@@ -48,16 +48,16 @@ export function castShadows() {
     outer.append(shape);
     host.append(outer);
   }
-  host.append(Object.assign(document.createElement('div'), { className: 'cast-ring' }));
   castSpectacles(host);
   castLegs();
+  document.getElementById('leg-shadows').append(Object.assign(document.createElement('div'), { className: 'cast-ring' }));
 }
 
 // art → desk mapping for a prop (its box, position and CSS transform)
 function propMatrix(prop, art) {
   const cs = getComputedStyle(prop);
-  const [ox, oy] = cs.transformOrigin.split(' ').map(parseFloat);
   const w = parseFloat(cs.width), h = parseFloat(cs.height);
+  const [ox, oy] = cs.transformOrigin.split(' ').map((v, i) => v.endsWith('%') ? parseFloat(v) / 100 * (i ? h : w) : parseFloat(v));
   return new DOMMatrix().translate(parseFloat(cs.left) + ox, parseFloat(cs.top) + oy)
     .multiply(new DOMMatrix(cs.transform === 'none' ? undefined : cs.transform)).translate(-ox, -oy).scale(w / art[0], h / art[1]);
 }
@@ -81,6 +81,8 @@ function castSpectacles(host) {
     { clip: '186px 0, 220px 0, 220px 100px, 186px 100px', A: HINGE_RISE / (HINGE - TIP), B: -TIP * HINGE_RISE / (HINGE - TIP) },
   ];
   const cs = getComputedStyle(prop);
+  if (!prop._specHooked) { prop._specHooked = true; prop.addEventListener('frame', (e) => prop._specSrc.forEach(f => f(e.detail))); }
+  prop._specSrc = [];
   for (const pc of pieces) {
     // rise(p) = A*(Ti.b*x + Ti.d*y + Ti.f) + B = al*x + be*y + ga ; shadow point = p + rise(p) * u
     const al = pc.A * Ti.b, be = pc.A * Ti.d, ga = pc.A * Ti.f + pc.B;
@@ -93,7 +95,7 @@ function castSpectacles(host) {
     Object.assign(shape.style, { left: cs.left, top: cs.top, width: cs.width, height: cs.height, transform: cs.transform, transformOrigin: cs.transformOrigin, clipPath: `polygon(${pc.clip})` });
     const setSrc = (src) => { if (src) shape.style.setProperty('--src', `url("${src}")`); };
     setSrc(prop.querySelector('img')?.src);
-    prop.addEventListener('frame', (e) => setSrc(e.detail));
+    (prop._specSrc ||= []).push(setSrc);
     outer.append(shape);
     host.append(outer);
   }

@@ -113,6 +113,8 @@ function setEdges(view) {
 function show(view) {
   S.view = view;
   document.querySelectorAll('.screen').forEach(s => s.classList.toggle('active', s.id === 'view-' + view));
+  // shadows are measured from the desk as it is laid out, so cast them once it is in view
+  if (view === 'desk') requestAnimationFrame(castShadows);
   document.querySelectorAll('#ui-layer .popup').forEach(p => p.close && p.close());
   setEdges(view);
   updateTitle();

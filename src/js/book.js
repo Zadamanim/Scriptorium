@@ -20,6 +20,7 @@ export function newBook() {
 
 /** repair anything missing/odd in a loaded book */
 /** the dress of a whole-line field: font, size, ink, weight, slant, underline, alignment */
+const isColor = (c) => typeof c === 'string' && /^#[0-9a-f]{6}$/i.test(c);
 function cleanLook(l) {
   if (!l || typeof l !== 'object') return {};
   const o = {};
@@ -42,11 +43,13 @@ export function normalizeBook(b) {
     p.id = p.id || uid();
     if (p.kind === 'text') {
       p.html = sanitizeHTML(p.html || '<p><br></p>');
-      if (p.chapter) p.chapter = { title: String(p.chapter.title || '').slice(0, 200), dropCap: !!p.chapter.dropCap, ...(p.chapter.look ? { look: cleanLook(p.chapter.look) } : {}) };
+      if (p.chapter) p.chapter = { title: String(p.chapter.title || '').slice(0, 200), dropCap: !!p.chapter.dropCap, ...(p.chapter.look ? { look: cleanLook(p.chapter.look) } : {}), ...(isColor(p.chapter.color) ? { color: p.chapter.color } : {}) };
     }
   }
   book.title = String(book.title || ''); book.author = String(book.author || '');
   book.looks = { title: cleanLook(b.looks?.title), author: cleanLook(b.looks?.author) };
+  const bd = b.binding || {}, orn = (g) => (typeof g === 'string' && g.length <= 3 ? g : undefined);
+  book.binding = { leather: isColor(bd.leather) ? bd.leather : undefined, lettering: isColor(bd.lettering) ? bd.lettering : undefined, ornTop: orn(bd.ornTop), ornBottom: orn(bd.ornBottom) };
   book.marks = (Array.isArray(b.marks) ? b.marks : []).filter(m => m && m.pageId)
     .map(m => ({ id: String(m.id || uid()), pageId: String(m.pageId), name: String(m.name || 'A mark').slice(0, 120) }));
   return book;

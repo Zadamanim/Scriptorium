@@ -13,6 +13,8 @@ export const ed = {
 };
 export function initBookChrome() {
   document.getElementById('front-cover').addEventListener('click', () => { if (ed.locked) ed.onUnlock(); else goToSpread(0); });
+  for (const id of ['front-cover']) document.getElementById(id).addEventListener('contextmenu', (e) => { e.preventDefault(); if (!ed.locked) ed.onBind?.('cover'); });
+  document.querySelector('#book .cover')?.addEventListener('contextmenu', (e) => { e.preventDefault(); if (!ed.locked) ed.onBind?.('cover'); });
   document.getElementById('clasp').addEventListener('click', () => { if (ed.locked) ed.onUnlock(); else if (ed.readOnly) toast('Books are sealed at the writing desk.'); else ed.onClasp(); });
 }
 const pages = () => ed.book.pages;
@@ -64,10 +66,10 @@ export function render() {
 // ------------------------------------------------------------------ ribbons: one silk ribbon per chapter, a cord for each mark
 // Like a real book, a ribbon for an earlier page hangs out on the left, a later one on the right,
 // and one marking the open pages hangs from the middle.
-const RIBBON_COLORS = ['#8b1a12', '#1f3a8a', '#2f6b4f', '#5b1f4f', '#b8902e', '#6e3a1e', '#20484a', '#7e1a22'];
+export const RIBBON_COLORS = ['#8b1a12', '#1f3a8a', '#2f6b4f', '#5b1f4f', '#b8902e', '#6e3a1e', '#20484a', '#7e1a22'];
 function ribbonItems() {
   const P = pages(), items = [];
-  chapters(ed.book).forEach((c, k) => items.push({ kind: 'chapter', index: c.index, name: c.title, color: RIBBON_COLORS[k % RIBBON_COLORS.length] }));
+  chapters(ed.book).forEach((c, k) => items.push({ kind: 'chapter', index: c.index, name: c.title, color: pages()[c.index]?.chapter?.color || RIBBON_COLORS[k % RIBBON_COLORS.length] }));
   for (const m of ed.book.marks || []) { const i = P.findIndex(p => p.id === m.pageId); if (i >= 0) items.push({ kind: 'mark', index: i, name: m.name, mark: m }); }
   return items;
 }
@@ -89,6 +91,7 @@ function renderRibbons() {
     const rb = el('div', { class: `ribbon ${t.kind} clickable`, 'data-tip': tip, style: `left:${x}px;height:${len}px;--rc:${t.color || '#b8902e'}` });
     rb.addEventListener('click', () => { if (ed.locked) return; goToPage(t.index).then(() => { if (!ed.readOnly) focusPageText(t.index, 'start'); }); });
     if (t.mark) rb.addEventListener('contextmenu', (e) => { e.preventDefault(); if (!ed.readOnly) ed.onMarkMenu(t.mark); });
+    else rb.addEventListener('contextmenu', (e) => { e.preventDefault(); ed.onBind?.('ribbons'); });
     box.append(rb);
   });
   // a shut book: the ribbons slip out from under the bottom edge of the cover, between the pages
@@ -111,11 +114,21 @@ export function addMarkHere() {
 export function renameMark(m, name) { m.name = name; markDirty(); render(); refreshContents(); }
 export function removeMark(m) { ed.book.marks = (ed.book.marks || []).filter(x => x !== m); markDirty(); render(); refreshContents(); }
 
+/** the leather and gilt chosen in the Bindery */
+export function applyBinding() {
+  const book = document.getElementById('book'), bd = ed.book?.binding || {};
+  book.classList.toggle('dyed', !!bd.leather);
+  book.style.setProperty('--leather', bd.leather || '#6a2318');
+  if (bd.lettering) book.style.setProperty('--gilt', bd.lettering); else book.style.removeProperty('--gilt');
+}
+
 function renderCover() {
   const fc = document.getElementById('front-cover');
   fc.innerHTML = '';
-  fc.append(el('div', { class: 'fc-orn' }, '❦'), applyLook(el('div', { class: 'fc-title' }, ed.book.title || 'Untitled Tome'), ed.book.looks?.title, 'font'),
-    el('div', { class: 'fc-orn' }, '✠'), el('div', { class: 'fc-author' }, ed.book.author || ''));
+  const bd = ed.book.binding || {};
+  fc.append(el('div', { class: 'fc-orn' }, bd.ornTop ?? '❦'), applyLook(el('div', { class: 'fc-title' }, ed.book.title || 'Untitled Tome'), ed.book.looks?.title, 'font'),
+    el('div', { class: 'fc-orn' }, bd.ornBottom ?? '✠'), el('div', { class: 'fc-author' }, ed.book.author || ''));
+  applyBinding();
   if (ed.locked) fc.append(el('div', { class: 'fc-hint' }, 'Sealed with magic words. Touch the seal to speak them.'));
   fc.dataset.tip = ed.locked ? 'This book is sealed — speak the magic words to open it' : 'Open the book';
   const clasp = document.getElementById('clasp');
@@ -129,11 +142,19 @@ function chapterAt(i) {
   return null;
 }
 
+// the inside of a cover opens the Bindery with a click; the outside with a right-click
+function bindable(n) {
+  n.classList.add('clickable');
+  n.dataset.tip = 'The inside of the cover — click to rebind the book (leather, lettering, ornaments, ribbons)';
+  n.addEventListener('click', () => ed.onBind?.('cover'));
+  n.addEventListener('contextmenu', (e) => { e.preventDefault(); ed.onBind?.('cover'); });
+  return n;
+}
 function renderPage(i, side) {
   const P = pages();
   if (i < 0) {
-    return el('div', { class: 'endpaper left' }, el('div', { class: 'bookplate' },
-      el('div', { class: 'ex' }, 'Ex Libris'), el('div', { class: 'who' }, ed.book.author || 'a Scribe unknown')));
+    return bindable(el('div', { class: 'endpaper left' }, el('div', { class: 'bookplate' },
+      el('div', { class: 'ex' }, 'Ex Libris'), el('div', { class: 'who' }, ed.book.author || 'a Scribe unknown'))));
   }
   if (i >= P.length) {
     if (i === P.length && !ed.readOnly) {
@@ -141,7 +162,7 @@ function renderPage(i, side) {
       pg.append(el('button', { class: 'add-leaf clickable', 'data-tip': 'Sew another blank page into the book', onclick: () => addPageAt(P.length, true) }, '✚ Add a fresh leaf'));
       return pg;
     }
-    return el('div', { class: `endpaper ${side}` });
+    return bindable(el('div', { class: `endpaper ${side}` }));
   }
   const p = P[i];
   const pg = el('div', { class: `page ${side}`, 'data-index': i, 'data-kind': p.kind });
@@ -725,3 +746,6 @@ export function restorePages(snap) {
   render(); refreshContents(); markDirty();
 }
 export const textIndexForFolio = (n) => n + 1;
+
+/** redraw what the Bindery changes, without disturbing the page being written */
+export function rerenderBinding() { renderCover(); renderRibbons(); }

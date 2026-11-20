@@ -418,12 +418,12 @@ body[data-ambient=off] .fireglow, body[data-ambient=off] .edge-arrow { animation
 /* nothing lies under the inside of a cover, so no page edges show beside it */
 .book:has(#spread > .endpaper.left) .page-stack.left, .book:has(#spread > .endpaper.right) .page-stack.right { display: none; }
 /* the candle's own dish shades the wood around its foot */
-.cast-ring { position: absolute; left: 64px; top: 424px; width: 300px; height: 74px; transform: scale(var(--flick)); transform-origin: 50% 50%;
+.cast-ring { position: absolute; left: 94px; top: 428px; width: 240px; height: 64px; transform: scale(var(--flick)); transform-origin: 50% 50%;
   background: radial-gradient(closest-side, rgba(4,2,0,.9) 40%, rgba(4,2,0,.6) 62%, rgba(4,2,0,.22) 82%, rgba(4,2,0,0) 100%); filter: blur(2px); opacity: calc(1.8 - var(--flick) * .8); }
 #view-desk.dark .cast-ring, #view-desk.dark .cast-leg { opacity: 0; transition: opacity .6s; }
 /* the writing stand's legs throw long shadows away from the flame, off past the edge of the desk */
 .cast-leg { position: absolute; height: 60px; transform-origin: 0 50%; transform: rotate(var(--a)) scaleX(var(--flick));
-  background: linear-gradient(90deg, rgba(6,3,0,.85), rgba(6,3,0,.6) 40%, rgba(6,3,0,.2) 100%); filter: blur(4px); border-radius: 30px 0 0 30px; }
+  background: linear-gradient(90deg, rgba(6,3,0,.55), rgba(6,3,0,.4) 40%, rgba(6,3,0,.12) 100%); filter: blur(4px); border-radius: 30px 0 0 30px; }
 
 /* the leaf that flips during a page turn */
 .turning-leaf { position: absolute; top: 24px; width: 488px; height: 706px; z-index: 8; pointer-events: none; transform-style: preserve-3d;
@@ -463,10 +463,10 @@ body[data-ambient=off] .fireglow, body[data-ambient=off] .edge-arrow { animation
   background-size: 100% 100%, 300px; box-shadow: 0 30px 50px rgba(0,0,0,.7), inset 0 0 40px rgba(0,0,0,.5);
   flex-direction: column; align-items: center; justify-content: center; text-align: center; color: #e8c97a; }
 .front-cover::before { content: ''; position: absolute; inset: 34px 30px 34px 52px; border: 3px double rgba(232,201,122,.75); border-radius: 4px; box-shadow: inset 0 0 0 10px rgba(0,0,0,.08), 0 0 0 8px rgba(232,201,122,.12); pointer-events: none; }
-.front-cover .fc-orn { font-size: 46px; color: #d8b058; text-shadow: 0 2px 0 rgba(0,0,0,.6); margin: 18px 0; }
+.front-cover .fc-orn { font-size: 46px; color: var(--gilt, #d8b058); font-family: 'Segoe UI Symbol', 'DejaVu Sans', 'Noto Sans Symbols', serif; min-height: 56px; line-height: 56px; text-shadow: 0 2px 0 rgba(0,0,0,.6); margin: 18px 0; }
 .front-cover .fc-title { font-family: var(--title-font); font-size: 46px; line-height: 1.15; max-width: 380px; margin-left: 22px;
-  color: #f1d27c; text-shadow: 0 2px 0 #3a1608, 0 0 14px rgba(241,210,124,.25); }
-.front-cover .fc-author { font-size: 26px; font-style: italic; margin-left: 22px; color: #e6c98a; text-shadow: 0 1px 0 #2a0b07; }
+  color: var(--gilt, #f1d27c); text-shadow: 0 2px 0 rgba(20,6,2,.85), 0 0 14px rgba(241,210,124,.2); }
+.front-cover .fc-author { font-size: 26px; font-style: italic; margin-left: 22px; color: var(--gilt, #e6c98a); text-shadow: 0 1px 0 #2a0b07; }
 .front-cover .fc-hint { position: absolute; bottom: 64px; left: 60px; right: 40px; font-size: 18px; font-style: italic; color: #d9c49a; opacity: .85; }
 .book.closed { transform: translateX(-256px); }
 .book.closed .front-cover { display: flex; }
@@ -483,6 +483,27 @@ body[data-ambient=off] .fireglow, body[data-ambient=off] .edge-arrow { animation
 @keyframes coverClose { from { transform: rotateY(-180deg); } to { transform: rotateY(0); } }
 /* while the cover swings, the left half of the open book is not there yet */
 .book.swinging .cover { clip-path: inset(0 0 0 50%); }
+/* a book rebound in another leather: the hide keeps its grain and shading, takes the new colour */
+.book.dyed .cover, .book.dyed .clasp, .book.dyed .cover-leaf .back { background-color: var(--leather); background-blend-mode: luminosity; }
+.book.dyed .front-cover { background-color: var(--leather); background-blend-mode: normal, luminosity; }
+/* ----- the Bindery ----- */
+#bindery { width: 640px; max-height: 86vh; overflow-y: auto; }
+.bind-intro { font-style: italic; opacity: .85; margin-top: 0; }
+.bind-row { display: flex; align-items: center; gap: 14px; margin: 10px 0; }
+.bind-label { width: 150px; flex: none; font-size: 19px; }
+.bind-opts { flex: 1; }
+.bind-swatches { display: flex; flex-wrap: wrap; gap: 7px; align-items: center; }
+.bind-sw { width: 30px; height: 30px; border-radius: 50%; border: 2px solid rgba(60,35,10,.55); background: var(--sw); box-shadow: inset 0 2px 4px rgba(255,255,255,.25), inset 0 -3px 5px rgba(0,0,0,.35); padding: 0; }
+.bind-sw.on { outline: 3px solid #8b1a12; outline-offset: 2px; }
+.bind-custom { width: 34px; height: 32px; padding: 0; border: 2px dashed rgba(60,35,10,.55); border-radius: 8px; background: none; }
+.bind-orns { display: flex; flex-wrap: wrap; gap: 5px; }
+.bind-orn { width: 36px; height: 36px; font-size: 22px; line-height: 1; border-radius: 6px; border: 1px solid rgba(60,35,10,.4); background: rgba(255,250,235,.5); color: #6b4a14;
+  font-family: 'Segoe UI Symbol', 'DejaVu Sans', 'Noto Sans Symbols', serif; padding: 0; }
+.bind-orn.on { background: #8b1a12; color: #f1d27c; }
+.bind-h { margin: 18px 0 6px; font-family: var(--title-font); font-weight: normal; color: var(--rubric); font-size: 22px; }
+.bind-ribbon { display: flex; align-items: center; gap: 12px; padding: 5px 0; border-top: 1px dotted rgba(90,60,30,.35); }
+.bind-ch { width: 150px; flex: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bind-ribbon .bind-sw { width: 24px; height: 24px; }
 .book.swinging .page-stack.left, .book.swinging #spread > :first-child { visibility: hidden; }
 .book.swinging .clasp { visibility: hidden; }
 /* ------------------------------------------------------------- floating UI (window coordinates) */

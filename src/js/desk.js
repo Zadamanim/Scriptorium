@@ -3,7 +3,8 @@
 import { Prop, manifest } from './assets.js';
 import { el, popup, dialog, toast, toastAction, STAY } from './ui.js';
 import * as E from './editor.js';
-import { folio } from './book.js';
+import { folio, chapters } from './book.js';
+import { openBindery } from './bindery.js';
 import { allFamilies, ensureFamily, refreshFonts } from './fonts.js';
 
 let app; // callbacks from app.js
@@ -44,6 +45,13 @@ export function initDesk(callbacks) {
   E.ed.onRunhead = () => {
     if (E.ed.readOnly) { E.goToSpread(1); return; }
     toggleQuillMenu(true); showView('pages');
+  };
+  E.ed.onBind = async (focus) => {
+    if (E.ed.readOnly) { toast('To rebind this book, take it down to write in it.'); return; }
+    const P = E.ed.book.pages;
+    await openBindery({ book: E.ed.book, chapters: chapters(E.ed.book).map(c => ({ ...c, page: P[c.index] })),
+      defaultRibbon: (k) => E.RIBBON_COLORS[k % E.RIBBON_COLORS.length],
+      onChange: () => { E.ed.onDirty(); E.rerenderBinding(); } }, focus);
   };
   E.ed.onMarkMenu = async (m) => {
     const name = el('input', { class: 'field', value: m.name });
@@ -293,6 +301,7 @@ function actions() {
     { label: 'Let the words flow onto following pages (redistribute)', keys: 'redistribute reflow overflow overfloweth flow spread text pages fit automatically extend distribute too much text', where: W_QUILL + ' › Pages · or click “overfloweth”', ctl: 'qm-flow', run: () => openFlow() },
     { label: 'Place a mark (bookmark) on this page', keys: 'mark bookmark marker ribbon cord tassel remember place save spot', where: W_QUILL + ' › Pages · the gold cords below the book', ctl: 'qm-mark', run: () => E.addMarkHere() },
     { label: 'Chapter ribbons (jump to a chapter)', keys: 'ribbon ribbons chapter jump skip go to', where: 'the silk ribbons hanging below the book', illum: '#ribbons', run: null },
+    { label: 'Rebind the book: cover colour, lettering, ornaments, ribbon colours', keys: 'cover colour color leather bind binding rebind lettering gold gilt title colour ornament embellishment cross icon fleuron ribbon colour dye customise customize appearance', where: 'click the inside of a cover · or right-click the outside cover or a chapter ribbon', illum: '#book', run: () => E.ed.onBind?.('cover') },
     { label: 'Begin a new chapter', keys: 'chapter new chapter heading section part', where: W_QUILL + ' › Pages', ctl: 'qm-chapter', run: () => E.newChapterHere() },
     { label: 'Add a blank page', keys: 'add page blank leaf new page insert page more pages', where: W_QUILL + ' › Pages', ctl: 'qm-addleaf', run: () => E.addLeafAfterCurrent() },
     { label: 'Tear out (delete) this page', keys: 'delete page remove page tear erase leaf', where: W_QUILL + ' › Pages', ctl: 'qm-tear', run: () => E.tearOutCurrent() },

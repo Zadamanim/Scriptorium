@@ -162,7 +162,7 @@ async function readTomeMeta(file) {
   try {
     const zip = await JSZip.loadAsync(await fsp.readFile(file));
     const meta = JSON.parse(await zip.file('manifest.json').async('string'));
-    return { title: meta.title, author: meta.author, cover: meta.cover, sealed: !!meta.seal };
+    return { title: meta.title, author: meta.author, cover: meta.cover, leather: /^#[0-9a-f]{6}$/i.test(meta.leather || '') ? meta.leather : null, sealed: !!meta.seal };
   } catch { return null; }
 }
 
@@ -180,7 +180,7 @@ async function listLibrary() {
       const p = path.join(dir, f);
       const meta = await readTomeMeta(p);
       const st = await fsp.stat(p);
-      books.push({ path: p, file: f, title: meta?.title || path.parse(f).name, author: meta?.author || '', cover: meta?.cover || null, sealed: !!meta?.sealed, mtime: st.mtimeMs, broken: !meta });
+      books.push({ path: p, file: f, title: meta?.title || path.parse(f).name, author: meta?.author || '', cover: meta?.cover || null, leather: meta?.leather || null, sealed: !!meta?.sealed, mtime: st.mtimeMs, broken: !meta });
     }
     books.sort((a, b) => a.title.localeCompare(b.title));
     shelves.push({ name, path: dir, books });
@@ -201,7 +201,7 @@ async function writeTome(file, payload) {
   zip.file('mimetype', 'application/x-scriptorium-tome', { compression: 'STORE' });
   zip.file('manifest.json', JSON.stringify({
     format: 'tome', version: TOME_FORMAT_VERSION, app: APP_NAME, appVersion: app.getVersion(),
-    title: book.title, author: book.author, cover: book.cover || null, saved: new Date().toISOString(), seal,
+    title: book.title, author: book.author, cover: book.cover || null, leather: /^#[0-9a-f]{6}$/i.test(book.binding?.leather || '') ? book.binding.leather : null, saved: new Date().toISOString(), seal,
   }, null, 1));
   const bookBuf = Buffer.from(JSON.stringify(book), 'utf8');
   if (key) zip.file('book.sealed', encrypt(key, bookBuf)); else zip.file('book.json', bookBuf);

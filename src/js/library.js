@@ -65,7 +65,7 @@ export async function renderLibrary(onPick, moved) {
     kase.append(front);
     let x = C.post + 14;
     for (const { b, h, w, ht } of row.books) {
-      const color = SPINE_COLORS[h % SPINE_COLORS.length];
+      const color = b.leather || SPINE_COLORS[h % SPINE_COLORS.length];
       const d = C.bookDepth;
       const book = el('div', { class: 'book3d clickable' + (b.broken ? ' broken' : ''), style: `left:${x}px;top:${boardTop - ht}px;width:${w}px;height:${ht}px`,
         'data-tip': b.broken ? `${b.file} — this tome seems damaged` : `${b.title}${b.author ? ' — ' + b.author : ''}${b.sealed ? ' (sealed with magic words)' : ''}` });
