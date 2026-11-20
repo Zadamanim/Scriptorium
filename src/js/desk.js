@@ -264,7 +264,9 @@ export function openSpectacles() {
     const s = app.settings();
     const val = el('span', {}, Math.round(s.uiScale * 100) + '%');
     const slider = el('input', { type: 'range', min: 75, max: 200, step: 5, value: Math.round(s.uiScale * 100), style: 'width:100%;accent-color:#8b1a12' });
-    slider.addEventListener('input', () => { val.textContent = slider.value + '%'; app.setUiScale(slider.value / 100); });
+    // show the number while sliding; resize only once the slider is let go, so the panel doesn't jump under the cursor
+    slider.addEventListener('input', () => { val.textContent = slider.value + '%'; });
+    slider.addEventListener('change', () => { app.setUiScale(slider.value / 100); });
     box.append(el('h3', {}, 'Spectacles'),
       el('div', { class: 'qm-note', style: 'font-style:normal;opacity:1' }, 'Size of menus, scrolls & labels'), slider, val,
       el('div', { class: 'qm-note', style: 'font-style:normal;opacity:1;margin-top:14px' }, 'Size of the cursor'),
