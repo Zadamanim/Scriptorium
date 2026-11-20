@@ -70,24 +70,31 @@ function piece(block, from, to) {
   e.append(r.cloneContents());
   return e;
 }
-/** the largest head of `block` that still fits below what is already in `frame` */
+/** the largest head of `block` that still fits below what is already in `frame` — cut only between words */
 function splitText(block, frame, container = frame) {
   const text = block.textContent;
   if (text.length < 2) return null;
-  let lo = 0, hi = text.length;
-  while (lo < hi) {
-    const mid = Math.ceil((lo + hi) / 2);
-    const h = piece(block, null, textPoint(block, mid));
+  // every place a word ends: candidates for the cut
+  const ends = [];
+  for (const m of text.matchAll(/\S+/g)) ends.push(m.index + m[0].length);
+  const tryCut = (k) => {
+    const h = piece(block, null, textPoint(block, k));
     container.append(h);
     const ok = fits(frame);
     h.remove();
-    if (ok) lo = mid; else hi = mid - 1;
+    return ok;
+  };
+  // binary search for the last word that still fits
+  let lo = -1, hi = ends.length - 1;
+  while (lo < hi) {
+    const mid = Math.ceil((lo + hi + 1) / 2);
+    if (tryCut(ends[mid])) lo = mid; else hi = mid - 1;
   }
-  let k = lo;
-  // step back to the end of a word
-  const ws = text.slice(0, k + 1).search(/\s\S*$/);
-  if (k < text.length && ws > 0) k = ws + 1;
-  if (k <= 0) return null;
+  if (lo < 0) return null;
+  if (lo === ends.length - 1) return [block.cloneNode(true), null];
+  // keep the space after the word on this page; the next page starts at the next word
+  let k = ends[lo];
+  while (k < text.length && /\s/.test(text[k])) k++;
   const head = piece(block, null, textPoint(block, k));
   const tail = piece(block, textPoint(block, k), null);
   tail.dataset.cont = '1';

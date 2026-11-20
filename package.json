@@ -1,6 +1,6 @@
 {
   "name": "scriptorium",
-  "version": "0.4.8",
+  "version": "0.4.9",
   "description": "A candle-lit desk for writing books.",
   "main": "main.js",
   "scripts": {

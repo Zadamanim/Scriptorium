@@ -365,6 +365,8 @@ body[data-ambient=off] .crystal-fog { animation: none; }
 .page.overflowing .overflow-flag { display: block; }
 .overflow-flag:hover { filter: brightness(1.2); }
 .page.measure { position: absolute; left: -9999px; top: 0; visibility: hidden; pointer-events: none; }
+/* no scrollbar while measuring: one that comes and goes would change the width between tries */
+.page.measure .text { overflow: hidden; }
 
 /* title page */
 .title-page { height: 100%; display: flex; flex-direction: column; align-items: center; text-align: center; padding-top: 70px; }
