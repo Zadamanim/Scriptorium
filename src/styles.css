@@ -316,7 +316,7 @@ body[data-ambient=off] .crystal-fog { animation: none; }
 .book { position: absolute; left: 348px; top: 102px; width: 1024px; height: 754px; perspective: 2400px; z-index: 4; transition: transform calc(.35s * var(--flip-k, 1)) ease-in-out; }
 .book .cover { position: absolute; inset: 0; border-radius: 10px; background: url(../assets/textures/leather.png); background-size: 300px;
   box-shadow: 0 30px 50px rgba(0,0,0,.7), inset 0 0 0 3px #2a0b07, inset 0 0 0 7px color-mix(in srgb, var(--gilt, #c9a24c) 50%, transparent), inset 0 0 40px rgba(0,0,0,.6); }
-.page-stack { position: absolute; top: 24.35px; bottom: 24px; width: 20px; background: repeating-linear-gradient(90deg, #d8c39a 0 1px, #b49a6c 1px 2px); border-radius: 2px; }
+.page-stack { position: absolute; top: 24.5px; bottom: 24px; width: 20px; background: repeating-linear-gradient(90deg, #d8c39a 0 1px, #b49a6c 1px 2px); border-radius: 2px; }
 .page-stack.left { left: 14px; } .page-stack.right { right: 14px; }
 .spread { position: absolute; left: 24px; top: 24px; width: 976px; height: 706px; display: flex; }
 .gutter { position: absolute; left: 50%; top: 24px; width: 90px; height: 706px; transform: translateX(-50%); pointer-events: none; z-index: 3;
